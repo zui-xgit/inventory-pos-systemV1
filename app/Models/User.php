@@ -7,9 +7,12 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * @property int $id
@@ -24,12 +27,13 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['username', 'first_name', 'last_name', 'gender', 'mobile',  'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+    use HasUuids; 
 
     /**
      * Get the attributes that should be cast.
@@ -42,5 +46,74 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
+
+    public function activeShop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'active_shop_id');
+    }
+
+    public function shops(): BelongsToMany
+    {
+        return $this->belongsToMany(Shop::class, 'shop_user'); 
+    }
+
+
+    // -------------------------------------------------------------------------
+    // Role helpers
+    // -------------------------------------------------------------------------
+ 
+    public function isOwner(): bool
+    {
+        return $this->hasRole('owner');
+    }
+ 
+    public function isManager(): bool
+    {
+        return $this->hasRole('manager');
+    }
+ 
+    public function isCashier(): bool
+    {
+        return $this->hasRole('cashier');
+    }
+ 
+    public function isManagerOrOwner(): bool
+    {
+        return $this->isOwner() || $this->isManager();
+    }
+ 
+    public function currentRole(): string
+    {
+        if ($this->isOwner())   return 'owner';
+        if ($this->isManager()) return 'manager';
+        if ($this->isCashier()) return 'cashier';
+ 
+        return 'none';
+    }
+
+    // -------------------------------------------------------------------------
+    // Status helpers
+    // -------------------------------------------------------------------------
+
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+ 
+    public function isSuspended(): bool
+    {
+        return $this->status === 'suspended';
+    }
+ 
+    public function isInactive(): bool
+    {
+        return $this->status === 'inactive';
     }
 }
