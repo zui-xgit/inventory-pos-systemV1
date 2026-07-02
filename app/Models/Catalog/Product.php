@@ -24,9 +24,6 @@ class Product extends Model
     use SoftDeletes; 
     use HasUuids; 
 
-
-   
-
     /**
      * Get the attributes that should be cast.
      *
