@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import AppLogoIcon from '@/components/app-logo-icon';
+import { Pill } from 'lucide-react';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -9,29 +9,45 @@ export default function AuthSimpleLayout({
     description,
 }: AuthLayoutProps) {
     return (
-        <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
-            <div className="w-full max-w-sm">
-                <div className="flex flex-col gap-8">
+        <div className="relative flex min-h-svh w-full flex-col items-center justify-center overflow-hidden bg-background p-6 font-sans md:p-10">
+            {/* Background decorative glows using primary theme variables */}
+            <div className="pointer-events-none absolute top-[-10%] right-[-10%] h-[400px] w-[400px] rounded-full bg-primary/10 blur-[100px]" />
+            <div className="pointer-events-none absolute bottom-[-10%] left-[-10%] h-[400px] w-[400px] rounded-full bg-primary/10 blur-[100px]" />
+
+            <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-xl backdrop-blur-md">
+                <div className="flex flex-col gap-6">
                     <div className="flex flex-col items-center gap-4">
                         <Link
                             href={home()}
-                            className="flex flex-col items-center gap-2 font-medium"
+                            className="group flex flex-col items-center gap-2"
                         >
-                            <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md">
-                                <AppLogoIcon className="size-9 fill-current text-[var(--foreground)] dark:text-white" />
+                            <div className="rounded-xl bg-primary p-3 text-primary-foreground shadow-md shadow-primary/20 transition-transform duration-300 group-hover:scale-105">
+                                <Pill className="h-6 w-6" />
                             </div>
-                            <span className="sr-only">{title}</span>
+                            <span className="text-lg font-bold tracking-tight text-foreground">
+                                RxPOS Terminal
+                            </span>
                         </Link>
 
-                        <div className="space-y-2 text-center">
-                            <h1 className="text-xl font-medium">{title}</h1>
-                            <p className="text-center text-sm text-muted-foreground">
+                        <div className="space-y-1.5 text-center">
+                            <h1 className="text-xl font-bold tracking-tight text-foreground">
+                                {title}
+                            </h1>
+                            <p className="mx-auto max-w-[280px] text-xs leading-normal text-muted-foreground">
                                 {description}
                             </p>
                         </div>
                     </div>
-                    {children}
+
+                    {/* Auth Form Children */}
+                    <div className="mt-2">{children}</div>
                 </div>
+            </div>
+
+            {/* Footer secure sign-in badge */}
+            <div className="z-10 mt-6 flex items-center gap-1.5 text-center font-mono text-[11px] text-muted-foreground">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+                <span>Secure SSL Terminal Session</span>
             </div>
         </div>
     );
