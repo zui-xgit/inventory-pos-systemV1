@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->uuid('uuid')->unique(); 
             $table->string('username');
-            $table->string('first_name');
-            $table->string('last_name');
+            $table->string('firstname');
+            $table->string('lastname');
             $table->enum('gender', ['male', 'female']);
             $table->string('phone');
             $table->string('email')->unique();
