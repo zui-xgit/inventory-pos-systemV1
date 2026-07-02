@@ -13,6 +13,8 @@ use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Contracts\LoginResponse;
+use Laravel\Fortify\Contracts\LogoutResponse;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -22,6 +24,32 @@ class FortifyServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
+         $this->app->instance(LogoutResponse::class, new class implements LogoutResponse {
+            public function toResponse($request)
+            {   
+                return redirect('/login');
+            }
+        });
+
+        $this->app->instance(LoginResponse::class, new class implements LoginResponse {
+            public function toResponse($request)
+            {
+                // $user = $request->user(); 
+
+                // if ($user->hasRole('owner')) {
+                //     return redirect()->route('owner.shop-select');
+                // } else if ($user->hasRole('manager')) {
+                //     return redirect()->route('manager.dashboard');
+                // }else if ($user->hasRole('cashier')){
+                //     return redirect()->route('cashier.dashboard'); 
+                // }
+
+
+                return redirect()->route('dashboard'); 
+
+
+            }
+        });
     }
 
     /**
