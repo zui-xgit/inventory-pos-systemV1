@@ -6,6 +6,7 @@ use App\Models\Catalog\Product;
 use App\Models\Inventory\Batch;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +17,7 @@ class Stock extends Model
     /** @use HasFactory<\Database\Factories\StockFactory> */
     use HasFactory;
     use BelongsToShop; 
+    use HasUuids; 
 
     /**
      * Get the attributes that should be cast.
@@ -29,6 +31,11 @@ class Stock extends Model
         ];
     }
  
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
+
     // -------------------------------------------------------------------------
     // Relations
     // -------------------------------------------------------------------------

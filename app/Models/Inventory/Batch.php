@@ -6,6 +6,7 @@ use App\Models\Catalog\Product;
 use App\Models\Catalog\Supplier;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,7 @@ class Batch extends Model
     /** @use HasFactory<\Database\Factories\BatchFactory> */
     use HasFactory;
     use BelongsToShop; 
+    use HasUuids; 
 
 
     /**
@@ -36,6 +38,12 @@ class Batch extends Model
             'selling_price'     => 'decimal:2',
         ];
     }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
+
  
     // -------------------------------------------------------------------------
     // Relations

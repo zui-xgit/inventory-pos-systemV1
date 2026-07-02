@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('last_name');
             $table->enum('gender', ['male', 'female']);
-            $table->string('mobile');
+            $table->string('phone');
             $table->string('email')->unique();
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
             $table->timestamp('email_verified_at')->nullable();

@@ -5,9 +5,9 @@ namespace App\Models\Catalog;
 use App\Models\Inventory\Batch;
 use App\Models\Inventory\Stock;
 use App\Models\Inventory\StockMovement;
-use App\Models\Unit;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,6 +22,7 @@ class Product extends Model
     use HasFactory;
     use BelongsToShop; 
     use SoftDeletes; 
+    use HasUuids; 
 
 
    
@@ -38,6 +39,12 @@ class Product extends Model
             'reorder_point' => 'integer',
         ];
     }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
+    
  
     // -------------------------------------------------------------------------
     // Relations

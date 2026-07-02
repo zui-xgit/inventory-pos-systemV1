@@ -4,10 +4,10 @@ namespace App\Models\Core;
 
 use App\Models\Catalog\Product;
 use App\Models\Catalog\Supplier;
+use App\Models\Catalog\Unit;
 use App\Models\Inventory\Batch;
 use App\Models\Inventory\Stock;
 use App\Models\Inventory\StockMovement;
-use App\Models\Unit;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
