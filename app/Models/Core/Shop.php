@@ -8,6 +8,7 @@ use App\Models\Catalog\Unit;
 use App\Models\Inventory\Batch;
 use App\Models\Inventory\Stock;
 use App\Models\Inventory\StockMovement;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,16 +19,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(
     'name',
-    'slug',
+    'location', 
     'address',
     'phone',
-    'email',
-    'currency',
-    'currency_symbol',
-    'timezone',
     'logo_path',
-    'low_stock_threshold',
-    'expiry_alert_days',
     'is_active',
 )]
 #[Hidden(
@@ -46,9 +41,9 @@ class Shop extends Model
     }   
 
 
-    public function staff(): BelongsToMany
+    public function users(): BelongsToMany
     {
-        return $this->belongsToMany(Shop::class, 'shop_user'); 
+        return $this->belongsToMany(User::class, 'shop_user');       
     }
 
     

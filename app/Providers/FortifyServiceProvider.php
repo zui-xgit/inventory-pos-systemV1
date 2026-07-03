@@ -45,7 +45,7 @@ class FortifyServiceProvider extends ServiceProvider
                 // }
 
 
-                return redirect()->route('dashboard'); 
+                return redirect()->route('owner.shops'); 
 
 
             }

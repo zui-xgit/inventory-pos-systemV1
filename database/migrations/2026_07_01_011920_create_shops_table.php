@@ -16,11 +16,9 @@ return new class extends Migration
             $table->uuid('uuid')->unique();
  
             $table->string('name');
-            $table->string('slug')->unique();
-            $table->string('address')->nullable();
-            $table->string('phone')->nullable();
-            $table->string('email')->nullable();
- 
+            $table->string('location'); 
+            $table->string('address');  
+            $table->string('phone');
             $table->string('currency', 3)->default('TZS');
             $table->string('currency_symbol', 5)->default('TSh');
             $table->string('timezone')->default('Africa/Dar_es_Salaam');
@@ -31,7 +29,7 @@ return new class extends Migration
             $table->unsignedInteger('expiry_alert_days')->default(30);
  
             $table->boolean('is_active')->default(true);
-            $table->timestamps();
+            $table->timestamps();   
             $table->softDeletes();
         });
     }

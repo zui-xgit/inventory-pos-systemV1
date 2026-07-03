@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // pivot table
-        Schema::create('shop_user', function (Blueprint $table) {
+        //
+         Schema::create('shop_user', function (Blueprint $table) {
             $table->id();
  
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
@@ -33,6 +33,6 @@ return new class extends Migration
     public function down(): void
     {
         //
-        Schema::dropIfExists('shop_user');
+         Schema::dropIfExists('shop_user');
     }
 };

@@ -10,11 +10,12 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property int $id
@@ -36,6 +37,7 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
     use HasUuids; 
+    use HasRoles;
 
     /**
      * Get the attributes that should be cast.
@@ -55,16 +57,16 @@ class User extends Authenticatable
         return ['uuid'];
     }
 
+
+    public function shops(): BelongsToMany
+    {
+       return $this->belongsToMany(Shop::class, 'shop_user');
+    }
+
     public function activeShop(): BelongsTo
     {
         return $this->belongsTo(Shop::class, 'active_shop_id');
     }
-
-    public function shops(): BelongsToMany
-    {
-        return $this->belongsToMany(Shop::class, 'shop_user'); 
-    }
-
 
     // -------------------------------------------------------------------------
     // Role helpers
