@@ -31,7 +31,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 )]
 class Shop extends Model
 {
-    /** @use HasFactory<\Database\Factories\ShopFactory> */
+    /** @use HasFactory<\Database\Factories\Core\ShopFactory> */
     use HasFactory;
     use HasUuids; 
 
@@ -43,7 +43,7 @@ class Shop extends Model
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'shop_user');       
+        return $this->belongsToMany(User::class, 'shop_user')->withTimestamps();       
     }
 
     

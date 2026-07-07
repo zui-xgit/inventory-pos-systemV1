@@ -16,10 +16,8 @@ return new class extends Migration
         //
          Schema::create('shop_user', function (Blueprint $table) {
             $table->id();
- 
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Shop::class)->constrained()->cascadeOnDelete();  
- 
             $table->timestamps();
  
             // one membership per user per shop

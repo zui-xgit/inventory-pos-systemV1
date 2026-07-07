@@ -3,101 +3,116 @@
 namespace App\Http\Controllers;
 
 use App\Models\Core\Shop;
-use Exception;
+use App\Models\Inventory\Alert;
+use App\Models\Sales\Sale;
+use App\Models\Sales\SaleItem;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ShopController extends Controller
 {
-
-   public function createShop(Request $request) 
+    //
+     // index - open shop
+   public function overviewDashboard(Shop $shop)
    {
 
-       $validated = $request->validate([
-            'name'                 => ['required', 'string', 'max:255'],
-            'location'                 => ['required', 'string', 'max:255'],
-            'address'              => ['required', 'string', 'max:500'],
-            'phone'                => ['required', 'string', 'max:50'],
-        ]);
+        $today = today();
 
-        try{
-            DB::beginTransaction(); 
-
-            $shop = Shop::create([
-                'name'                => $validated['name'],
-                'location'            => $validated['location'],
-                'address'             => $validated['address'],
-                'phone'               => $validated['phone'],
+        $totalSalesToday = Sale::where('shop_id', $shop->id)
+            ->whereDate('created_at', $today)
+            ->where('status', 'completed')
+            ->count();
+ 
+        $totalRevenueToday = Sale::where('shop_id', $shop->id)
+            ->whereDate('created_at', $today)
+            ->where('status', 'completed')
+            ->sum('total_amount');
+ 
+        // ── Alert stats ───────────────────────────────────────────────────────
+ 
+        $lowStockCount = Alert::where('shop_id', $shop->id)
+            ->where('type', 'low_stock')
+            ->where('status', 'unread')
+            ->count();
+ 
+        $expiringSoonCount = Alert::where('shop_id', $shop->id)
+            ->where('type', 'expiry')
+            ->where('status', 'unread')
+            ->count();
+ 
+        // ── Recent sales ──────────────────────────────────────────────────────
+ 
+        $recentSales = Sale::where('shop_id', $shop->id)
+            ->whereDate('created_at', $today)
+            ->where('status', 'completed')
+            ->with(['user:id,name', 'items:id,sale_id'])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(fn($sale) => [
+                'id'             => $sale->id,
+                'receipt_number' => $sale->receipt_number,
+                'cashier_name'   => $sale->user->name,
+                'items_count'    => $sale->items->count(),
+                'total_amount'   => number_format($sale->total_amount, 2),
+                'payment_method' => $sale->payment_method,
+                'time'           => $sale->created_at->format('h:i A'),
             ]);
-
-            $user = Auth::user(); 
-            $shop->users()->attach($user->id); 
-
-            DB::commit(); 
-            Inertia::flash('toast', ['type' => 'success', 'message' => __('Shop created successfully.')]);
-
-        }catch(Exception $e){
-
-            DB::rollBack();     
-            dd($e->getMessage()); 
-
-            return back()->withErrors([
-            'error' => 'An internal error occurred while creating the shop.'
+ 
+        // ── Top selling products ──────────────────────────────────────────────
+ 
+        $topProducts = SaleItem::query()
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->where('sales.shop_id', $shop->id)
+            ->whereDate('sales.created_at', $today)
+            ->where('sales.status', 'completed')
+            ->select(
+                'products.id',
+                'products.name',
+                'products.form',
+                DB::raw('SUM(sale_items.quantity) as units_sold'),
+                DB::raw('SUM(sale_items.subtotal) as revenue'),
+            )
+            ->groupBy('products.id', 'products.name', 'products.form')
+            ->orderByDesc('units_sold')
+            ->take(5)
+            ->get()
+            ->map(fn($product) => [
+                'id'         => $product->id,
+                'name'       => $product->name,
+                'form'       => $product->form,
+                'units_sold' => (int) $product->units_sold,
+                'revenue'    => number_format($product->revenue, 2),
             ]);
-        }
-   }
-
-   //return all shops
-   public function shops(Request $request)
-   {
-
-        // 1. Initialize the query builder
-        $query = Shop::query()->orderBy('created_at', 'desc');
-
-        // 2. Handle conditional search for name and location
-       if ($request->filled('search')) {
-        $search = strtolower($request->search);
-        $query->where(function ($q) use ($search) {
-            $q->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"])
-            ->orWhereRaw('LOWER(location) LIKE ?', ["%{$search}%"]);
-        });
-}
-        
-
-        // 3. Paginate and map the shop data explicitly 
-        $shops = $query->get()->map(function ($shop) {
-            return [
-                'uuid' => $shop->uuid,
-                'name' => $shop->name,
-                'location' => $shop->location,
-                'address' => $shop->address,
-                'phone' => $shop->phone,    
-                'email' => $shop->email,
-                'currency' => $shop->currency,
+ 
+        // ── Render ────────────────────────────────────────────────────────────
+ 
+        return Inertia::render('shop/overview/overview-dashboard', [
+            'shop' => [
+                'id'              => $shop->uuid,
+                'name'            => $shop->name,
                 'currency_symbol' => $shop->currency_symbol,
-                'is_active' => (bool) $shop->is_active,
-                'created_at' => $shop->created_at->toIso8601String(),
-            ];
-        });
-
-        
-
-        // 4. Return the Inertia view with all the payload data
-        return Inertia::render('owner/shops', [
-            'shops' => $shops,
-            'filters' => $request->only(['search']),
+            ],
+            'stats' => [
+                'total_sales_today'   => $totalSalesToday,
+                'total_revenue_today' => number_format($totalRevenueToday, 2),
+                'low_stock_count'     => $lowStockCount,
+                'expiring_soon_count' => $expiringSoonCount,
+            ],
+            'recent_sales' => $recentSales,
+            'top_products' => $topProducts,
         ]);
+   } 
 
-   
-   }
-
-   public function manageUsers()        
+   public function newSalePos(Shop $shop)
    {
-      return Inertia::render("owner/manage-users"); 
+     return Inertia::render("shop/sales/new-sale-pos"); 
    }
 
-
-
+   public function salesHistory(Shop $shop)
+   {
+     return Inertia::render("shop/sales/sales-history"); 
+   }
 }

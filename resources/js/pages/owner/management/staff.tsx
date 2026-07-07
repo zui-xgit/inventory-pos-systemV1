@@ -1,6 +1,6 @@
 import DashboardInnerLayout from '@/layouts/app/dashboard-inner-layout';
 
-const ManageUsers = () => {
+const Staff = () => {
     return (
         <>
             <DashboardInnerLayout>Test</DashboardInnerLayout>
@@ -8,4 +8,4 @@ const ManageUsers = () => {
     );
 };
 
-export default ManageUsers;
+export default Staff;

@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { login, register } from '@/routes';
+import { login, register, shopOverview } from '@/routes';
 import {
     Pill,
     ShieldCheck,
@@ -13,9 +13,21 @@ import {
     Layers,
 } from 'lucide-react';
 import owner from '@/routes/owner';
+import { RouteDefinition } from '@/wayfinder';
 
 export default function Welcome() {
-    const { auth } = usePage().props as any;
+    const { auth } = usePage().props;
+
+    let homeHref: RouteDefinition<'get'> =
+        '#' as unknown as RouteDefinition<'get'>;
+
+    if (auth.user) {
+        if (auth.user.isOwner) {
+            homeHref = owner.shops();
+        } else if (auth.user.isManagerOrCashier) {
+            homeHref = shopOverview({ shop: auth.user.shop_uuid });
+        }
+    }
 
     return (
         <>
@@ -44,7 +56,7 @@ export default function Welcome() {
                     <nav className="flex items-center gap-4">
                         {auth.user ? (
                             <Link
-                                href={owner.shops()}
+                                href={homeHref}
                                 className="hover:bg-emerald-505 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-600/10 transition-all dark:shadow-emerald-600/5"
                             >
                                 <LayoutDashboard className="h-4 w-4" />

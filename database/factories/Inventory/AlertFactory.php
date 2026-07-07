@@ -2,13 +2,13 @@
 
 namespace Database\Factories\Inventory;
 
-use App\Models\Inventory\Stock;
+use App\Models\Inventory\Alert;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Stock>
+ * @extends Factory<Alert>
  */
-class StockFactory extends Factory
+class AlertFactory extends Factory
 {
     /**
      * Define the model's default state.

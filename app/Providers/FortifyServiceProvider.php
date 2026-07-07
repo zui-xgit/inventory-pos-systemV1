@@ -34,19 +34,25 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->instance(LoginResponse::class, new class implements LoginResponse {
             public function toResponse($request)
             {
-                // $user = $request->user(); 
+                   $user = $request->user(); 
 
-                // if ($user->hasRole('owner')) {
-                //     return redirect()->route('owner.shop-select');
-                // } else if ($user->hasRole('manager')) {
-                //     return redirect()->route('manager.dashboard');
-                // }else if ($user->hasRole('cashier')){
-                //     return redirect()->route('cashier.dashboard'); 
-                // }
+                   if($user->isOwner()){
+                        return redirect()->route('owner.shops'); 
+                   }
 
+                   if($user->isManagerOrCashier()){
+                        // 1. Grab the first shop assigned to this user
+                        $shop = $user->shops()->first(); 
 
-                return redirect()->route('owner.shops'); 
+                        // 2. If they aren't assigned to any shop, handle the error gracefully
+                        if (!$shop) {
+                            abort(403, 'You are a staff member but have not been assigned to a pharmacy branch yet.');
+                        }
 
+                        // 3. Redirect to the named route, passing the UUID under the 'shop' key
+                        // Matches your route parameter '{shop:uuid}'
+                        return redirect()->route('shop-overview', ['shop' => $shop->uuid]);
+                   }
 
             }
         });

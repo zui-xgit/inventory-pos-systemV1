@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Core\Shop;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -22,13 +23,38 @@ class DatabaseSeeder extends Seeder
         $cashier_role = Role::create(['name' => 'cashier']);
 
     
-        $owner_user = User::factory()->create([
-            'username' => 'jacob.athuman', 
+        // User A (owner)
+        $userA = User::factory()->create([
+            'username' => 'owner.owner', 
             'firstname' => 'jacob', 
             'lastname' => 'athuman'
-        ]);
+        ]); 
+        $userA->assignRole($owner_role); 
 
-        // $owner_user->assignRole($owner_role); 
+
+        $userB = User::factory()->create([
+            'username' => 'manager.manager', 
+            'firstname' => 'Alex', 
+            'lastname' => 'Ronaldo', 
+        ]);
+        $userB->assignRole($manager_role); 
+
+
+        $userC = User::factory()->create([
+            'username' => 'cashier.cashier', 
+            'firstname' => 'Lamine', 
+            'lastname' => 'Yamal', 
+        ]);
+        $userC->assignRole($cashier_role); 
+
+
+        $shop = Shop::factory()->create(); 
+        $shop->users()->attach($userB->id); 
+        $shop->users()->attach($userC->id); 
+
+
+        
+
 
     }
 }

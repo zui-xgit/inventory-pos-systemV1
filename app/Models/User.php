@@ -57,10 +57,16 @@ class User extends Authenticatable
         return ['uuid'];
     }
 
+    public function belongsToShop(int|string $shopId): bool 
+    {
+        return $this->shops()->where('shop_id', $shopId)->exists(); 
+    }
+
+
 
     public function shops(): BelongsToMany
     {
-       return $this->belongsToMany(Shop::class, 'shop_user');
+       return $this->belongsToMany(Shop::class, 'shop_user')->withTimestamps();
     }
 
     public function activeShop(): BelongsTo
@@ -74,7 +80,8 @@ class User extends Authenticatable
  
     public function isOwner(): bool
     {
-        return $this->hasRole('owner');
+        return $this->hasRole('owner');  
+         
     }
  
     public function isManager(): bool
@@ -90,6 +97,11 @@ class User extends Authenticatable
     public function isManagerOrOwner(): bool
     {
         return $this->isOwner() || $this->isManager();
+    }
+
+    public function isManagerOrCashier(): bool 
+    {
+        return $this->isManager() || $this->isCashier(); 
     }
  
     public function currentRole(): string

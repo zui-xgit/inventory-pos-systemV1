@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Core;
 
 use App\Models\Core\Shop;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -18,7 +18,10 @@ class ShopFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->company() . ' Pharmacy',
+            'location' => fake()->city(),
+            'address' => fake()->address(),
+            'phone' => fake()->phoneNumber(),
         ];
     }
 }
