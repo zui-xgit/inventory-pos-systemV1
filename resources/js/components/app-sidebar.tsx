@@ -44,10 +44,12 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import type { NavItem } from '@/types';
+import type { Auth } from '@/types/auth';
 import owner from '@/routes/owner';
 import NavSubMain from './nav-sub-main';
 import { logout, shopOverview } from '@/routes';
 import sales from '@/routes/sales';
+import purchases from '@/routes/purchases';
 
 // OWNER NAVITEMS
 const Overview: NavItem[] = [
@@ -101,6 +103,19 @@ const ShopSales = (shop_uuid: string): NavItem[] => [
     {
         title: 'Sales History',
         href: sales.history({ shop: shop_uuid }),
+        icon: History,
+    },
+];
+
+const ShopPurchases = (shop_uuid: string): NavItem[] => [
+    {
+        title: 'New Purchase',
+        href: purchases.newPurchase({ shop: shop_uuid }),
+        icon: ShoppingCart,
+    },
+    {
+        title: 'Purchase History',
+        href: purchases.history({ shop: shop_uuid }),
         icon: History,
     },
 ];
@@ -265,6 +280,7 @@ const footerNavItems: NavItem[] = [
 export function AppSidebar() {
     const { activeShop, auth } = usePage<{
         activeShop: { uuid: string } | undefined;
+        auth: Auth;
     }>().props;
 
     return (
@@ -302,30 +318,34 @@ export function AppSidebar() {
                         groupLabel={'Overview'}
                         items={ShopOverview(activeShop.uuid)}
                     />
+                    {/* SALES */}
                     <NavMain
                         groupLabel={'Sales'}
                         items={ShopSales(activeShop.uuid)}
                     />
-                    {/* <NavMain groupLabel={'Inventory'} items={ShopInventory} /> */}
-                    <SidebarGroup className="py-0">
+                    {/* PURCHASES */}
+                    <NavMain
+                        groupLabel="PURCHASES"
+                        items={ShopPurchases(activeShop.uuid)}
+                    />
+                    {/* <SidebarGroup className="py-0">
                         <SidebarGroupLabel>Inventory</SidebarGroupLabel>
                         <NavSubMain
                             title="Shop Inventory"
                             Icon={Package}
                             items={ShopInventory}
                         />
-                    </SidebarGroup>
-                    {/* <NavMain groupLabel={'Stock'} items={ShopStock} /> */}
-                    <SidebarGroup className="py-0">
+                    </SidebarGroup> */}
+                    {/* <SidebarGroup className="py-0">
                         <SidebarGroupLabel>Stock</SidebarGroupLabel>
                         <NavSubMain
                             title="Shop Stock"
                             Icon={Package}
                             items={ShopStock}
                         />
-                    </SidebarGroup>
+                    </SidebarGroup> */}
 
-                    <SidebarGroup className="py-0">
+                    {/* <SidebarGroup className="py-0">
                         <SidebarGroupLabel>Reports</SidebarGroupLabel>
                         <NavSubMain
                             title="Sales Report"
@@ -337,26 +357,26 @@ export function AppSidebar() {
                             Icon={Package}
                             items={ShopInventoryReports}
                         />
-                    </SidebarGroup>
-                    <SidebarGroup className="py-0">
+                    </SidebarGroup> */}
+                    {/* <SidebarGroup className="py-0">
                         <SidebarGroupLabel>Alerts</SidebarGroupLabel>
                         <NavSubMain
                             title="Shop Alerts"
                             Icon={AlertTriangle}
                             items={ShopAlerts}
                         />
-                    </SidebarGroup>
+                    </SidebarGroup> */}
 
-                    <SidebarGroup className="py-0">
+                    {/* <SidebarGroup className="py-0">
                         <SidebarGroupLabel>Management</SidebarGroupLabel>
                         <NavSubMain
                             title="Shop Management"
                             Icon={Settings}
                             items={ShopManagement}
                         />
-                    </SidebarGroup>
+                    </SidebarGroup> */}
 
-                    <NavMain groupLabel={'Account'} items={ShopAccount} />
+                    {/* <NavMain groupLabel={'Account'} items={ShopAccount} /> */}
                 </SidebarContent>
             )}
 

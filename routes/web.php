@@ -17,6 +17,11 @@ Route::middleware(['shop.member'])->group(function (){
     Route::get('shops/{shop:uuid}/new-sale-pos', [ShopController::class, "newSalePos"])->name('sales.new-sale-pos'); 
     Route::get('shops/{shop:uuid}/sales-history', [ShopController::class, "salesHistory"])->name('sales.history'); 
 
+
+    //Purchases
+    Route::get('shops/{shop:uuid}/new-purchase', [ShopController::class, "newPurchases"])->name('purchases.new-purchase'); 
+    Route::get('shops/{shop:uuid}/purchases-history', [ShopController::class, "purchasesHistory"])->name('purchases.history');
+
     // // inventory
     // Route::get('shops/{shop:uuid}', [ShopController::class, "inventoryProducts"])->name('inventory.products'); 
     // Route::get('shops/{shop:uuid}', [ShopController::class, "inventoryBatches"])->name('inventory.batches'); 

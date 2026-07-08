@@ -106,6 +106,8 @@ class ShopController extends Controller
         ]);
    } 
 
+
+   //SALES
    public function newSalePos(Shop $shop)
    {
      return Inertia::render("shop/sales/new-sale-pos"); 
@@ -115,4 +117,15 @@ class ShopController extends Controller
    {
      return Inertia::render("shop/sales/sales-history"); 
    }
+
+    //    PURCHASES
+    public function newPurchases(Shop $shop)
+    {
+      return Inertia::render("shop/purchases/new-purchase"); 
+    }
+    
+    public function purchasesHistory(Shop $shop)
+    {
+      return Inertia::render("shop/purchases/purchases-history"); 
+    }
 }
