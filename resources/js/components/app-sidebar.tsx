@@ -119,28 +119,35 @@ const ShopPurchases = (shop_uuid: string): NavItem[] => [
     },
 ];
 
-const ShopInventory = (shop_uuid: string): NavItem[] => [
+const ShopCatalog = (shop_uuid: string): NavItem[] => [
     {
-        title: 'Products',
+        title: 'Shop Catalog',
         href: catalog.products({ shop: shop_uuid }),
         icon: Package,
     },
-    {
-        title: 'Batches',
-        href: catalog.batches({ shop: shop_uuid }),
-        icon: Boxes,
-    },
-    {
-        title: 'Dosage Forms',
-        href: catalog.dosageForms({ shop: shop_uuid }),
-        icon: Truck,
-    },
-    {
-        title: 'Package Units',
-        href: catalog.packageUnits({ shop: shop_uuid }),
-        icon: Ruler,
-    },
 ];
+// const ShopCatalog = (shop_uuid: string): NavItem[] => [
+//     {
+//         title: 'Products',
+//         href: catalog.products({ shop: shop_uuid }),
+//         icon: Package,
+//     },
+//     {
+//         title: 'Batches',
+//         href: catalog.batches({ shop: shop_uuid }),
+//         icon: Boxes,
+//     },
+//     {
+//         title: 'Dosage Forms',
+//         href: catalog.dosageForms({ shop: shop_uuid }),
+//         icon: Truck,
+//     },
+//     {
+//         title: 'Package Units',
+//         href: catalog.packageUnits({ shop: shop_uuid }),
+//         icon: Ruler,
+//     },
+// ];
 
 const ShopStock: NavItem[] = [
     {
@@ -327,14 +334,18 @@ export function AppSidebar() {
                         groupLabel={'Purchases'}
                         items={ShopPurchases(activeShop.uuid)}
                     />
-                    <SidebarGroup className="py-0">
+                    <NavMain
+                        groupLabel={'Catalog'}
+                        items={ShopCatalog(activeShop.uuid)}
+                    />
+                    {/* <SidebarGroup className="py-0">
                         <SidebarGroupLabel>Catalog</SidebarGroupLabel>
                         <NavSubMain
                             title="Shop Catalog"
                             Icon={Package}
                             items={ShopInventory(activeShop.uuid)}
                         />
-                    </SidebarGroup>
+                    </SidebarGroup> */}
                     {/* <SidebarGroup className="py-0">
                         <SidebarGroupLabel>Stock</SidebarGroupLabel>
                         <NavSubMain

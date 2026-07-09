@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Catalog\Batch;
+use App\Models\Catalog\DosageForm;
+use App\Models\Catalog\PackageUnit;
 use App\Models\Catalog\Product;
 use App\Models\Core\Shop;
 use App\Models\Inventory\Alert;
@@ -312,23 +315,146 @@ class ShopController extends Controller
     public function productsCatalog(Request $request, Shop $shop)
     {
     
-        return Inertia::render('shop/catalog/products'); 
+
+        $search_input = $request->input('search'); 
+        $search = strtolower($search_input);
+
+        $products = Product::where('shop_id', $shop->id)
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('sku', 'LIKE', "%{$search}%");
+                });
+            })
+            ->with([
+                'dosageForm:id,uuid,name',
+                'packageUnit:id,uuid,name'
+            ])
+            ->latest()
+            ->paginate(15)
+            ->withQueryString()
+            ->through(function ($product) {
+                return [
+                    'uuid'         => $product->uuid,
+                    'name'         => $product->name,
+                    'sku'          => $product->sku ?? 'N/A',
+                    'is_active'    => $product->is_active,
+                    'dosage_form'  => [
+                        'uuid' => $product->dosageForm?->uuid,
+                        'name' => $product->dosageForm?->name ?? 'N/A',
+                    ],
+                    'package_unit' => [
+                        'uuid' => $product->packageUnit?->uuid,
+                        'name' => $product->packageUnit?->name ?? 'N/A',
+                    ],
+                ];
+        });
+
+        $package_units = $shop->packageUnits()->get(['uuid', 'name']);
+        $dosage_forms = $shop->dosageForms()->get(['uuid', 'name']);
+
+
+        return Inertia::render('shop/catalog/products', [
+            'products' => $products,
+            'filters'  => $request->only(['search']),
+            'package_units' => $package_units, 
+            'dosage_forms' => $dosage_forms
+        ]); 
         
     }
 
     public function batchesCatalog(Request $request, Shop $shop)
     {   
-        return Inertia::render('shop/catalog/batches'); 
+        $search_input = $request->input('search'); 
+        $search = strtolower($search_input);
+
+        $batches = Batch::where('shop_id', $shop->id)
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('batch_number', 'LIKE', "%{$search}%")
+                    ->orWhereHas('product', function ($productQuery) use ($search) {
+                        $productQuery->where('name', 'LIKE', "%{$search}%");
+                    });
+                });
+            })
+            ->with(['product:id,uuid,name']) // Eager-load parent product details securely
+            ->latest()
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function ($batch) {
+                return [
+                    'uuid'              => $batch->uuid,
+                    'batch_number'      => $batch->batch_number,
+                    'product_name'      => $batch->product?->name ?? 'Unknown Product',
+                    'quantity_received' => $batch->quantity_received,
+                    'current_quantity'  => $batch->current_quantity ?? $batch->quantity_received,
+                    'cost_price'        => $batch->cost_price,
+                    'selling_price'     => $batch->selling_price,
+                    'expiry_date'       => $batch->expiry_date ? $batch->expiry_date->format('Y-m-d') : 'N/A',
+                    'is_expired'        => $batch->expiry_date ? $batch->expiry_date->isPast() : false,
+                ];
+        });
+        
+        return Inertia::render('shop/catalog/batches', [
+            'batches' => $batches,
+            'filters' => $request->only(['search']),
+        ]); 
           
     }
 
     public function dosageFormsCatalog(Request $request, Shop $shop)
     {   
-        return Inertia::render('shop/catalog/dosage-forms'); 
+        $search_input = $request->input('search'); 
+        $search = strtolower($search_input);
+
+
+        $dosageForms = DosageForm::where('shop_id', $shop->id)
+            ->when($search, function ($query, $search) {
+                $query->where('name', 'LIKE', "%{$search}%");
+            })
+            ->withCount(['products']) // Useful to show how many products use this form
+            ->latest()
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function ($form) {
+                return [
+                    'uuid'           => $form->uuid,
+                    'name'           => $form->name,
+                    'products_count' => $form->products_count,
+                    'is_active'      => $form->is_active ?? true,
+                ];
+        });
+        return Inertia::render('shop/catalog/dosage-forms', [
+            'dosageForms' => $dosageForms,
+            'filters'     => $request->only(['search']),
+        ]);
     }
 
     public function packageUnitsCatalog(Request $request, Shop $shop)
     {   
-        return Inertia::render('shop/catalog/package-units'); 
+        $search_input = $request->input('search'); 
+        $search = strtolower($search_input);
+
+        $packageUnits = PackageUnit::where('shop_id', $shop->id)
+            ->when($search, function ($query, $search) {
+                $query->where('name', 'LIKE', "%{$search}%");
+            })
+            ->withCount(['products']) // Eager-load relation volume
+            ->latest()
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function ($unit) {
+                return [
+                    'uuid'           => $unit->uuid,
+                    'name'           => $unit->name,
+                    'products_count' => $unit->products_count,
+                    'is_active'      => $unit->is_active ?? true,
+                ];
+        });
+
+        return Inertia::render('shop/catalog/package-units', [
+            'packageUnits' => $packageUnits,
+            'filters'      => $request->only(['search']),
+        ]); 
     }
 }   

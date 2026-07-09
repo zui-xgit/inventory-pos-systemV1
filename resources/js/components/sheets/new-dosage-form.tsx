@@ -68,7 +68,7 @@ const NewDosageFormSheet = ({ trigger }: NewDosageFormSheetProps) => {
                 >
                     <SheetHeader className="text-left">
                         <SheetTitle className="text-base font-bold">
-                            New Dosage Form
+                            Add New Dosage Form
                         </SheetTitle>
                         <SheetDescription className="text-xs text-muted-foreground">
                             Define a new dosage form for your products. This
@@ -93,7 +93,6 @@ const NewDosageFormSheet = ({ trigger }: NewDosageFormSheetProps) => {
                                     setData('name', e.target.value)
                                 }
                                 placeholder="e.g. Tablet, Capsule, Syrup"
-                                className="rounded-xl text-sm"
                             />
 
                             <InputError message={errors.name} />

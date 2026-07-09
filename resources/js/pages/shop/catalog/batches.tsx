@@ -1,7 +1,187 @@
-import DashboardInnerLayout from '@/layouts/app/dashboard-inner-layout';
+import Heading from '@/components/heading';
+import SearchInput from '@/components/search-input';
+import { Head, Link } from '@inertiajs/react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
-const Batches = () => {
-    return <DashboardInnerLayout>BATCHES</DashboardInnerLayout>;
+interface BatchItem {
+    uuid: string;
+    batch_number: string;
+    product_name: string;
+    quantity_received: number;
+    current_quantity: number;
+    cost_price: number;
+    selling_price: number;
+    expiry_date: string;
+    is_expired: boolean;
+}
+
+interface Props {
+    batches: {
+        data: BatchItem[];
+        links: { url: string | null; label: string; active: boolean }[];
+    };
+    filters: {
+        search?: string;
+    };
+}
+
+const Batches = ({ batches, filters }: Props) => {
+    return (
+        <>
+            <Head title="Inventory Batches" />
+
+            <div className="space-y-6">
+                {/* Header Actions */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <Heading
+                        variant="small"
+                        title="Inventory Batches"
+                        description="Track physical stock shipments, costs, operational pricing, and expiration risks."
+                    />
+                    <Button size="sm" className="w-full sm:w-auto">
+                        <Plus className="mr-2 h-4 w-4" /> Record New Batch
+                    </Button>
+                </div>
+
+                {/* Filter Controls */}
+                <div className="max-w-sm">
+                    <SearchInput
+                        href={window.location.pathname}
+                        filters={filters}
+                        placeholder="Search by batch number or product..."
+                    />
+                </div>
+
+                {/* Data Representation Grid */}
+                <div className="rounded-md border bg-card">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Batch Info</TableHead>
+                                <TableHead>Product</TableHead>
+                                <TableHead>Stock Level</TableHead>
+                                <TableHead>Financials (Cost / Sell)</TableHead>
+                                <TableHead>Expiry</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {batches.data.length > 0 ? (
+                                batches.data.map((batch) => (
+                                    <TableRow key={batch.uuid}>
+                                        <TableCell className="font-medium text-foreground">
+                                            <span className="block font-mono text-xs text-muted-foreground">
+                                                # {batch.batch_number}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-foreground">
+                                            {batch.product_name}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-sm font-medium">
+                                                    {batch.current_quantity}{' '}
+                                                    left
+                                                </span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    of {batch.quantity_received}{' '}
+                                                    received
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-sm">
+                                            <div className="space-x-1">
+                                                <span className="font-mono text-muted-foreground">
+                                                    TSh{' '}
+                                                    {Number(
+                                                        batch.cost_price,
+                                                    ).toLocaleString()}
+                                                </span>
+                                                <span className="text-muted-foreground">
+                                                    /
+                                                </span>
+                                                <span className="font-mono font-semibold text-foreground">
+                                                    TSh{' '}
+                                                    {Number(
+                                                        batch.selling_price,
+                                                    ).toLocaleString()}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col items-start gap-1">
+                                                <span className="font-mono text-sm">
+                                                    {batch.expiry_date}
+                                                </span>
+                                                <Badge
+                                                    variant={
+                                                        batch.is_expired
+                                                            ? 'destructive'
+                                                            : 'outline'
+                                                    }
+                                                >
+                                                    {batch.is_expired
+                                                        ? 'Expired'
+                                                        : 'Valid'}
+                                                </Badge>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={5}
+                                        className="h-24 text-center text-muted-foreground"
+                                    >
+                                        No active inventory batches match your
+                                        filters.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                {/* Contextual Nav Links */}
+                {batches.links.length > 3 && (
+                    <div className="flex items-center justify-end space-x-2">
+                        {batches.links.map((link, index) => {
+                            if (!link.url) return null;
+                            return (
+                                <Button
+                                    key={index}
+                                    variant={
+                                        link.active ? 'default' : 'outline'
+                                    }
+                                    size="sm"
+                                    asChild
+                                >
+                                    <Link
+                                        href={link.url}
+                                        preserveState
+                                        preserveScroll
+                                        dangerouslySetInnerHTML={{
+                                            __html: link.label,
+                                        }}
+                                    />
+                                </Button>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        </>
+    );
 };
 
 export default Batches;

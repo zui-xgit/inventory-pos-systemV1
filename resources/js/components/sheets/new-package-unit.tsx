@@ -68,7 +68,7 @@ const NewPackageUnitSheet = ({ trigger }: NewPackageUnitSheetProps) => {
                 >
                     <SheetHeader className="text-left">
                         <SheetTitle className="text-base font-bold">
-                            Add New Unit
+                            Add New Package Unit
                         </SheetTitle>
                         <SheetDescription className="text-xs text-muted-foreground">
                             Define a new measurement unit for packaging items in
@@ -93,7 +93,6 @@ const NewPackageUnitSheet = ({ trigger }: NewPackageUnitSheetProps) => {
                                     setData('name', e.target.value)
                                 }
                                 placeholder="e.g. Strip, Bottle, Box"
-                                className="rounded-xl text-sm"
                             />
 
                             <InputError message={errors.name} />

@@ -22,20 +22,24 @@ export function NavMain({
         <SidebarGroup className="px-2 py-0">
             {groupLabel && <SidebarGroupLabel>{groupLabel}</SidebarGroupLabel>}
             <SidebarMenu>
-                {items.map((item, index) => (
-                    <SidebarMenuItem key={index}>
-                        <SidebarMenuButton
-                            asChild
-                            isActive={isCurrentUrl(item.href)}
-                            tooltip={{ children: item.title }}
-                        >
-                            <Link href={item.href} prefetch>
-                                {item.icon && <item.icon />}
-                                <span className="text-sm">{item.title}</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                ))}
+                {items.map((item, index) => {
+                    return (
+                        <SidebarMenuItem key={index}>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={isCurrentUrl(item.href)}
+                                tooltip={{ children: item.title }}
+                            >
+                                <Link href={item.href} prefetch>
+                                    {item.icon && <item.icon />}
+                                    <span className="text-sm">
+                                        {item.title}
+                                    </span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    );
+                })}
             </SidebarMenu>
         </SidebarGroup>
     );
