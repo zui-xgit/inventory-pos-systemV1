@@ -1,7 +1,8 @@
 <?php
 
+use App\Models\Catalog\DosageForm;
+use App\Models\Catalog\PackageUnit;
 use App\Models\Core\Shop;
-use App\Models\Catalog\Unit;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -21,13 +22,16 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
  
-            $table->foreignIdFor(Unit::class)
+            $table->foreignIdFor(DosageForm::class)
+                ->constrained()
+                ->restrictOnDelete(); // prevent deleting a unit that has products
+                
+            $table->foreignIdFor(PackageUnit::class)
                 ->constrained()
                 ->restrictOnDelete(); // prevent deleting a unit that has products
  
             $table->string('name');
             $table->string('sku')->nullable();  // barcode or internal code
-            $table->string('form');             // tablet, syrup, injection, cream, drops
  
             // Reorder point — when stock falls below this number,
             // a low stock alert is triggered for this specific product.

@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Catalog\Product;
 use App\Models\Core\Shop;
 use App\Models\Inventory\Alert;
 use App\Models\Sales\Sale;
 use App\Models\Sales\SaleItem;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class ShopController extends Controller
@@ -61,30 +64,37 @@ class ShopController extends Controller
             ]);
  
         // ── Top selling products ──────────────────────────────────────────────
- 
+
         $topProducts = SaleItem::query()
-            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-            ->join('products', 'sale_items.product_id', '=', 'products.id')
-            ->where('sales.shop_id', $shop->id)
-            ->whereDate('sales.created_at', $today)
-            ->where('sales.status', 'completed')
-            ->select(
-                'products.id',
-                'products.name',
-                'products.form',
-                DB::raw('SUM(sale_items.quantity) as units_sold'),
-                DB::raw('SUM(sale_items.subtotal) as revenue'),
-            )
-            ->groupBy('products.id', 'products.name', 'products.form')
-            ->orderByDesc('units_sold')
+            ->whereHas('sale', function ($query) use ($shop, $today) {
+                $query->where('shop_id', $shop->id)
+                    ->whereDate('created_at', $today)
+                    ->where('status', 'completed');
+            })
+            ->with(['product.dosageForm', 'product.packageUnit'])
+            ->get() // Fetch records safely using framework drivers
+            ->groupBy('product_id')
+            ->map(function ($items) {
+                $firstItem = $items->first();
+                
+                return [
+                    'id'         => $firstItem->product_id,
+                    'name'       => $firstItem->product?->name,
+                    'form'       => $firstItem->product?->dosageForm?->name ?? 'N/A',
+                    'unit'       => $firstItem->product?->packageUnit?->name ?? 'N/A',
+                    'units_sold' => (int) $items->sum('quantity'),   // Pure collection math
+                    'revenue'    => (float) $items->sum('subtotal'), // Pure collection math
+                ];
+            })
+            ->sortByDesc('units_sold')
             ->take(5)
-            ->get()
+            ->values()
             ->map(fn($product) => [
-                'id'         => $product->id,
-                'name'       => $product->name,
-                'form'       => $product->form,
-                'units_sold' => (int) $product->units_sold,
-                'revenue'    => number_format($product->revenue, 2),
+                'id'         => $product['id'],
+                'name'       => $product['name'],
+                'form'       => $product['form'],
+                'units_sold' => $product['units_sold'],
+                'revenue'    => number_format($product['revenue'], 2),
             ]);
  
         // ── Render ────────────────────────────────────────────────────────────
@@ -119,13 +129,206 @@ class ShopController extends Controller
    }
 
     //    PURCHASES
-    public function newPurchases(Shop $shop)
+    public function receiveStock(Request $request, Shop $shop)
     {
-      return Inertia::render("shop/purchases/new-purchase"); 
-    }
+        $search_input = $request->input('search'); 
+        $search = strtolower($search_input);
+        $products = [];
+        if (!empty($search)) {
+            $products = Product::where('shop_id', $shop->id)
+                ->where('name', 'LIKE', "%{$search}%")
+                ->with(['dosageForm:id,uuid,name', 'packageUnit:id,uuid,name'])
+                ->limit(20)
+                ->get()
+                ->map(function ($product) {
+                    return [
+                        'uuid'         => $product->uuid,
+                        'name'         => $product->name,
+                        'sku'          => $product->sku,
+                        'dosage_form'  => [
+                            'uuid' => $product->dosageForm?->uuid ?? null,
+                            'name' => $product->dosageForm?->name ?? 'N/A',
+                        ], 
+                        'package_unit' => [
+                            'uuid' => $product->packageUnit?->uuid ?? null,
+                            'name' => $product->packageUnit?->name ?? 'N/A',
+                        ],
+                ];
+            });
+        }
+        $package_units = $shop->packageUnits()->get(['uuid', 'name']);
+        $dosage_forms = $shop->dosageForms()->get(['uuid', 'name']);
+
+        return Inertia::render("shop/purchases/receive-stock", [
+            'products' => $products,
+            'package_units' => $package_units,
+            'dosage_forms' => $dosage_forms,
+            'filters'  => $request->only(['search']),
+            'shop_uuid' => $shop->uuid, 
+            'search_input' => $search_input
+        ]);
+    }   
     
     public function purchasesHistory(Shop $shop)
     {
       return Inertia::render("shop/purchases/purchases-history"); 
     }
-}
+
+    public function createPackageUnit(Request $request, Shop $shop )
+    {
+        $request->merge([
+            'name' => strtolower($request->input('name')),
+        ]);
+
+        $validated = $request->validate([   
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                // Checks the 'units' table, ensuring 'name' is unique where 'shop_id' matches the current shop
+                Rule::unique('package_units')->where(function ($query) use ($shop) {
+                    return $query->where('shop_id', $shop->id);
+                }),
+            ],
+        ]); 
+
+
+        try{
+            DB::beginTransaction();
+            $shop->packageUnits()->create([
+                'name' => $validated['name'],
+            ]);
+            DB::commit();
+        }catch(Exception $e){
+            DB::rollback();
+            return back()->withErrors(['error' => 'Failed to create unit: ']);
+        }
+    }
+
+    public function createDosageForm(Request $request, Shop $shop)
+    {
+
+        $request->merge([
+           'name' => strtolower($request->input('name')),
+        ]);
+
+        $validated = $request->validate([   
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                // Checks the 'dosage_forms' table, ensuring 'name' is unique where 'shop_id' matches the current shop
+                Rule::unique('dosage_forms')->where(function ($query) use ($shop) {
+                    return $query->where('shop_id', $shop->id);
+                }),
+            ],
+        ]); 
+
+
+        try{
+            DB::beginTransaction();
+            $shop->dosageForms()->create([
+                'name' => $validated['name'],
+            ]);
+            DB::commit();
+        }catch(Exception $e){
+            DB::rollback();
+            return back()->withErrors(['error' => 'Failed to create dosage form: ']);
+        }
+    }
+
+
+    public function createProduct(Request $request, Shop $shop)
+    {
+
+        $request->merge([
+            'name' => strtolower($request->input('name')), 
+            'sku' => strtolower($request->input('sku')),
+        ]);
+
+
+       $validated  = $request->validate([
+            'name' => 'required|string|max:255',
+            'dosage_form_uuid' => [
+                'required',
+                'exists:dosage_forms,uuid', // Ensure the form exists in the dosage_forms table
+            ],
+            'package_unit_uuid' => [
+                'required',
+                'exists:package_units,uuid', // Ensure the unit exists in the units table
+            ],
+            'sku' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('products')->where(function ($query) use ($shop) {
+                    return $query->where('shop_id', $shop->id);
+                }),
+            ],
+        ]);
+
+
+        try {
+            DB::beginTransaction();
+
+            // Fetch the unit by UUID
+            $dosage_form = $shop->dosageForms()->where('uuid', $validated['dosage_form_uuid'])->firstOrFail();
+            $package_unit = $shop->packageUnits()->where('uuid', $validated['package_unit_uuid'])->firstOrFail();
+
+            // Create the product with the associated unit_id
+            $shop->products()->create([
+                'name' => $validated['name'],
+                'dosage_form_id' => $dosage_form->id, 
+                'package_unit_id' => $package_unit->id,
+                'sku' => $validated['sku'],
+            ]);
+
+            DB::commit();
+            
+        } catch (Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Failed to create product: ']);
+        }
+
+        
+    }
+
+    public function createBatch(Request $request, Shop $shop)
+    {
+        $validated = $request->validate([
+            'product_name'       => ['required', 'string', 'max:255'],
+            'product_uuid'       => ['required', 'uuid', Rule::exists('products', 'uuid')->where('shop_id', $shop->id)],
+            'batch_number'       => ['required', 'string', 'max:100'],
+            'quantity_received'  => ['required', 'integer', 'min:1'],
+            'cost_price'         => ['required', 'numeric', 'min:0'],
+            'selling_price'      => ['required', 'numeric', 'min:0', 'gte:cost_price'], // must be >= cost price
+            'manufactured_date'  => ['required', 'date', 'before_or_equal:today'],
+            'expiry_date'        => ['required', 'date', 'after:today'],
+        ]);          
+    }   
+
+
+    // CATALOG & INVENTORY
+    public function productsCatalog(Request $request, Shop $shop)
+    {
+    
+        return Inertia::render('shop/catalog/products'); 
+        
+    }
+
+    public function batchesCatalog(Request $request, Shop $shop)
+    {   
+        return Inertia::render('shop/catalog/batches'); 
+          
+    }
+
+    public function dosageFormsCatalog(Request $request, Shop $shop)
+    {   
+        return Inertia::render('shop/catalog/dosage-forms'); 
+    }
+
+    public function packageUnitsCatalog(Request $request, Shop $shop)
+    {   
+        return Inertia::render('shop/catalog/package-units'); 
+    }
+}   

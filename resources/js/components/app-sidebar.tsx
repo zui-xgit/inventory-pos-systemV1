@@ -11,7 +11,6 @@ import {
     ShoppingCart,
     Boxes,
     BarChart3,
-    LogOut,
     User,
     BarChart4,
     Receipt,
@@ -26,7 +25,6 @@ import {
     Ruler,
     TriangleAlert,
     AlarmClock,
-    AlertTriangle,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -47,9 +45,10 @@ import type { NavItem } from '@/types';
 import type { Auth } from '@/types/auth';
 import owner from '@/routes/owner';
 import NavSubMain from './nav-sub-main';
-import { logout, shopOverview } from '@/routes';
 import sales from '@/routes/sales';
 import purchases from '@/routes/purchases';
+import { shopOverview } from '@/routes';
+import catalog from '@/routes/catalog';
 
 // OWNER NAVITEMS
 const Overview: NavItem[] = [
@@ -109,36 +108,36 @@ const ShopSales = (shop_uuid: string): NavItem[] => [
 
 const ShopPurchases = (shop_uuid: string): NavItem[] => [
     {
-        title: 'New Purchase',
-        href: purchases.newPurchase({ shop: shop_uuid }),
+        title: 'Receive Stock',
+        href: purchases.receiveStock({ shop: shop_uuid }),
         icon: ShoppingCart,
     },
     {
-        title: 'Purchase History',
+        title: 'Received Stock History',
         href: purchases.history({ shop: shop_uuid }),
         icon: History,
     },
 ];
 
-const ShopInventory: NavItem[] = [
+const ShopInventory = (shop_uuid: string): NavItem[] => [
     {
         title: 'Products',
-        href: '#',
+        href: catalog.products({ shop: shop_uuid }),
         icon: Package,
     },
     {
         title: 'Batches',
-        href: '#',
+        href: catalog.batches({ shop: shop_uuid }),
         icon: Boxes,
     },
     {
-        title: 'Suppliers',
-        href: '#',
+        title: 'Dosage Forms',
+        href: catalog.dosageForms({ shop: shop_uuid }),
         icon: Truck,
     },
     {
-        title: 'Units',
-        href: '#',
+        title: 'Package Units',
+        href: catalog.packageUnits({ shop: shop_uuid }),
         icon: Ruler,
     },
 ];
@@ -325,17 +324,17 @@ export function AppSidebar() {
                     />
                     {/* PURCHASES */}
                     <NavMain
-                        groupLabel="PURCHASES"
+                        groupLabel={'Purchases'}
                         items={ShopPurchases(activeShop.uuid)}
                     />
-                    {/* <SidebarGroup className="py-0">
-                        <SidebarGroupLabel>Inventory</SidebarGroupLabel>
+                    <SidebarGroup className="py-0">
+                        <SidebarGroupLabel>Catalog</SidebarGroupLabel>
                         <NavSubMain
-                            title="Shop Inventory"
+                            title="Shop Catalog"
                             Icon={Package}
-                            items={ShopInventory}
+                            items={ShopInventory(activeShop.uuid)}
                         />
-                    </SidebarGroup> */}
+                    </SidebarGroup>
                     {/* <SidebarGroup className="py-0">
                         <SidebarGroupLabel>Stock</SidebarGroupLabel>
                         <NavSubMain

@@ -47,9 +47,16 @@ class Product extends Model
     // Relations
     // -------------------------------------------------------------------------
  
-    public function unit(): BelongsTo
+    public function packageUnit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class);
+        return $this->belongsTo(PackageUnit::class);
+    }
+
+    
+ 
+    public function dosageForm(): BelongsTo
+    {
+        return $this->belongsTo(DosageForm::class);
     }
  
     public function batches(): HasMany

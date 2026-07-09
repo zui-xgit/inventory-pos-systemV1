@@ -2,9 +2,10 @@
 
 namespace App\Models\Core;
 
+use App\Models\Catalog\DosageForm;
+use App\Models\Catalog\PackageUnit;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\Supplier;
-use App\Models\Catalog\Unit;
 use App\Models\Inventory\Batch;
 use App\Models\Inventory\Stock;
 use App\Models\Inventory\StockMovement;
@@ -47,9 +48,14 @@ class Shop extends Model
     }
 
     
-    public function units(): HasMany
+    public function packageUnits(): HasMany
     {
-        return $this->hasMany(Unit::class);
+        return $this->hasMany(PackageUnit::class);
+    }
+
+    public function dosageForms(): HasMany
+    {
+        return $this->hasMany(DosageForm::class);
     }
 
     public function products(): HasMany

@@ -3,20 +3,21 @@
 namespace App\Models\Catalog;
 
 use App\Traits\BelongsToShop;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Attributes\Guarded;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 #[Guarded('id')]
-class Unit extends Model
+class PackageUnit extends Model
 {
-    /** @use HasFactory<\Database\Factories\UnitFactory> */
+    /** @use HasFactory<\Database\Factories\Catalog\PackageUnitFactory> */
     use HasFactory;
     use BelongsToShop;
     use HasUuids; 
-    
+
+
     public function uniqueIds(): array
     {
         return ['uuid'];

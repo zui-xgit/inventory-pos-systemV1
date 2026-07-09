@@ -1,14 +1,14 @@
 <?php
 
-namespace Database\Factories\Inventory;
+namespace Database\Factories\Catalog;
 
-use App\Models\Inventory\Batch;
+use App\Models\Catalog\DosageForm;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Batch>
+ * @extends Factory<DosageForm>
  */
-class BatchFactory extends Factory
+class DosageFormFactory extends Factory
 {
     /**
      * Define the model's default state.

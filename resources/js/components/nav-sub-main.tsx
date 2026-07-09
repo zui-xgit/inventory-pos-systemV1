@@ -59,7 +59,9 @@ const NavSubMain = ({
                                     >
                                         <Link href={subItem.href} prefetch>
                                             {subItem.icon && <subItem.icon />}
-                                            <span>{subItem.title}</span>
+                                            <span className="text-sm">
+                                                {subItem.title}
+                                            </span>
                                         </Link>
                                     </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>

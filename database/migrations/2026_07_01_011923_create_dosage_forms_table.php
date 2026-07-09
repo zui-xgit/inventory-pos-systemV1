@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('units', function (Blueprint $table) {
+        Schema::create('dosage_forms', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique(); 
  
@@ -21,7 +21,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
  
             $table->string('name');           // e.g. Tablet, Bottle, Strip
-            $table->string('abbreviation');   // e.g. tab, btl, str
+            $table->softDeletes();
             $table->timestamps();
  
             // unit names must be unique per shop
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('units');
+        Schema::dropIfExists('dosage_forms');
     }
 };

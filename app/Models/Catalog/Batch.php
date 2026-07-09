@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Models\Inventory;
+namespace App\Models\Catalog;
 
-use App\Models\Catalog\Product;
-use App\Models\Catalog\Supplier;
+use App\Models\Inventory\Stock;
+use App\Models\Inventory\StockMovement;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
 #[Guarded('id')]
 class Batch extends Model
 {
-    /** @use HasFactory<\Database\Factories\BatchFactory> */
+     /** @use HasFactory<\Database\Factories\Catalog\BatchFactory> */
     use HasFactory;
     use BelongsToShop; 
     use HasUuids; 

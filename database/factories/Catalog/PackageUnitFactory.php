@@ -2,13 +2,13 @@
 
 namespace Database\Factories\Catalog;
 
-use App\Models\Catalog\Unit;
+use App\Models\Catalog\PackageUnit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Unit>
+ * @extends Factory<PackageUnit>
  */
-class UnitFactory extends Factory
+class PackageUnitFactory extends Factory
 {
     /**
      * Define the model's default state.

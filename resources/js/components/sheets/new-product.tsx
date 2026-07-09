@@ -1,0 +1,239 @@
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetDescription,
+    SheetFooter,
+    SheetClose,
+    SheetTrigger,
+} from '@/components/ui/sheet';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label'; // Corrected to point to standard Shadcn Label component
+import { Button } from '../ui/button';
+import { useState } from 'react';
+import { useForm, usePage } from '@inertiajs/react';
+import InputError from '../input-error';
+import { Spinner } from '../ui/spinner';
+import purchases from '@/routes/purchases';
+import { toast } from 'sonner';
+import { SelectGroup } from '@radix-ui/react-select';
+import { DosageForm, PackageUnit } from '@/types/type';
+
+interface NewProductDialogProps {
+    trigger: React.ReactNode;
+    package_units: PackageUnit[];
+    dosage_forms: DosageForm[]; // Assuming dosage forms have the same structure as package units
+}
+
+const NewProductSheet = ({
+    trigger,
+    package_units,
+    dosage_forms,
+}: NewProductDialogProps) => {
+    const [isOpen, setIsOpen] = useState<boolean>(false);
+    const { data, setData, processing, errors, post, reset, clearErrors } =
+        useForm({
+            name: '',
+            dosage_form_uuid: '',
+            package_unit_uuid: '',
+            sku: '',
+        });
+
+    // Grab your active shop from Inertia props if needed to formulate URLs
+    const { activeShop } = usePage<{ activeShop: { uuid: string } }>().props;
+
+    const handleAddProduct = () => {
+        post(purchases.newProduct({ shop: activeShop.uuid }).url, {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                reset();
+                clearErrors();
+                setIsOpen(false);
+                toast.success(
+                    `New "${data.name}" product added successfully!`,
+                    {
+                        position: 'top-right',
+                    },
+                );
+            },
+        });
+    };
+
+    return (
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            {/* asChild merges the drawer trigger action onto your prop element neatly */}
+            <SheetTrigger asChild>{trigger}</SheetTrigger>
+
+            {/* side="right" creates a beautiful slide-out drawer canvas */}
+            <SheetContent
+                onCloseAutoFocus={() => {
+                    reset();
+                    clearErrors();
+                }}
+            >
+                <SheetHeader className="text-left">
+                    <SheetTitle className="text-base font-bold">
+                        Add New Product
+                    </SheetTitle>
+                    <SheetDescription className="text-xs text-muted-foreground">
+                        Fill in its details to add new product (medicine).
+                    </SheetDescription>
+                </SheetHeader>
+
+                <div className="space-y-4 px-4 py-2">
+                    <div className="space-y-1.5">
+                        <Label
+                            htmlFor="prod-name"
+                            className="text-xs font-semibold"
+                        >
+                            Product Name{' '}
+                            <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                            id="prod-name"
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
+                            placeholder="e.g. Paracetamol 500mg"
+                            className="rounded-xl text-sm"
+                        />
+                        <InputError message={errors.name} />
+                    </div>
+
+                    <div className="flex flex-col space-y-1.5">
+                        <Label className="text-xs font-semibold">
+                            Dosage Form
+                        </Label>
+
+                        <Select
+                            value={data.dosage_form_uuid}
+                            onValueChange={(value) =>
+                                setData('dosage_form_uuid', value)
+                            }
+                        >
+                            <SelectTrigger className="w-full rounded-xl text-xs">
+                                <SelectValue placeholder="Select dosage form" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                                <SelectGroup>
+                                    {dosage_forms && dosage_forms.length > 0 ? (
+                                        <>
+                                            {dosage_forms.map((dosage_form) => (
+                                                <SelectItem
+                                                    key={dosage_form.uuid}
+                                                    value={dosage_form.uuid}
+                                                    className="text-sm"
+                                                >
+                                                    {dosage_form.name}
+                                                </SelectItem>
+                                            ))}
+                                        </>
+                                    ) : (
+                                        <>
+                                            NO dosage forms , please create
+                                            dosage forms first
+                                        </>
+                                    )}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+
+                        <InputError message={errors.dosage_form_uuid} />
+                    </div>
+                    <div className="flex flex-col space-y-1.5">
+                        <Label className="text-xs font-semibold">
+                            Package Unit
+                        </Label>
+
+                        <Select
+                            value={data.package_unit_uuid}
+                            onValueChange={(value) =>
+                                setData('package_unit_uuid', value)
+                            }
+                        >
+                            <SelectTrigger className="w-full rounded-xl text-xs">
+                                <SelectValue placeholder="Select unit" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                                <SelectGroup>
+                                    {package_units &&
+                                    package_units.length > 0 ? (
+                                        <>
+                                            {package_units.map(
+                                                (package_unit) => (
+                                                    <SelectItem
+                                                        key={package_unit.uuid}
+                                                        value={
+                                                            package_unit.uuid
+                                                        }
+                                                        className="text-sm"
+                                                    >
+                                                        {package_unit.name}
+                                                    </SelectItem>
+                                                ),
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            NO units , please create units first
+                                        </>
+                                    )}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+
+                        <InputError message={errors.package_unit_uuid} />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <Label
+                            htmlFor="prod-sku"
+                            className="text-xs font-semibold"
+                        >
+                            SKU / Barcode
+                        </Label>
+                        <Input
+                            id="prod-sku"
+                            value={data.sku}
+                            onChange={(e) => setData('sku', e.target.value)}
+                            placeholder="e.g. PCM500 "
+                            className="rounded-xl text-sm"
+                        />
+                        <InputError message={errors.sku} />
+                    </div>
+                </div>
+
+                <SheetFooter className="flex-row items-center justify-end gap-2 border-t pt-4">
+                    <SheetClose asChild disabled={processing}>
+                        <Button
+                            variant="outline"
+                            className="rounded-xl text-xs font-semibold"
+                        >
+                            Cancel
+                        </Button>
+                    </SheetClose>
+                    <Button
+                        onClick={handleAddProduct}
+                        className="rounded-xl text-xs font-semibold"
+                        disabled={processing}
+                    >
+                        {processing && <Spinner className="mr-2 h-4 w-4" />}
+                        Add Product
+                    </Button>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
+    );
+};
+
+export default NewProductSheet;
