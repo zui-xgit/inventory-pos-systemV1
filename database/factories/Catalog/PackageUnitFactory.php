@@ -17,8 +17,19 @@ class PackageUnitFactory extends Factory
      */
     public function definition(): array
     {
+        $packageUnits = [
+            'box',
+            'bottle',
+            'tin',
+            'strip',
+            'carton',
+            'sachet',
+            'tube',
+            'pack'
+        ];
+
         return [
-            //
+            'name' => fake()->unique()->randomElement($packageUnits),
         ];
     }
 }

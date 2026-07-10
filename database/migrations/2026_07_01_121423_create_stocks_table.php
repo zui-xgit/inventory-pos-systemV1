@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Inventory\Batch;
+use App\Models\Catalog\Batch;
 use App\Models\Catalog\Product;
 use App\Models\Core\Shop;
 use Illuminate\Database\Migrations\Migration;

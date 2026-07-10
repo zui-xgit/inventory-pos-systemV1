@@ -1,21 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
-import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCurrentUrl } from '@/hooks/use-current-url';
-import { cn, toUrl } from '@/lib/utils';
+import { toUrl } from '@/lib/utils';
 import type { NavItem } from '@/types';
 import catalog from '@/routes/catalog';
-import {
-    Boxes,
-    Layers,
-    Package,
-    Package2,
-    Pill,
-    Ruler,
-    Truck,
-} from 'lucide-react';
+import { Layers, Package, Package2, Pill } from 'lucide-react';
 
 const sidebarNavItems = (shop_uuid: string): NavItem[] => [
     {
@@ -47,50 +37,50 @@ export default function CatalogLayout({ children }: PropsWithChildren) {
         activeShop: { uuid: string } | undefined;
     }>().props;
 
+    const items =
+        activeShop !== undefined ? sidebarNavItems(activeShop.uuid) : [];
+
+    // Find the current active item based on the current active URL
+    const activeItem = items.find((item) => isCurrentOrParentUrl(item.href));
+
     return (
-        <div className="px-4 py-6">
-            <Heading title="Catalog" description="Manage your catalog items" />
+        <div className="flex flex-col space-y-4 px-4 py-4">
+            <header>
+                <h2 className="text-xl font-semibold tracking-tight">
+                    Catalog
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                    Manage your catalog items
+                </p>
+            </header>
 
-            <div className="flex flex-col lg:flex-row lg:space-x-4">
-                <aside className="w-full max-w-xl lg:w-48">
-                    <nav
-                        className="flex flex-col space-y-1 space-x-0"
-                        aria-label="Catalog"
-                    >
-                        {activeShop !== undefined && (
-                            <>
-                                {sidebarNavItems(activeShop.uuid).map(
-                                    (item, index) => (
-                                        <Button
-                                            key={`${toUrl(item.href)}-${index}`}
-                                            size="sm"
-                                            variant="ghost"
-                                            asChild
-                                            className={cn(
-                                                'w-full justify-start',
-                                                {
-                                                    'bg-muted':
-                                                        isCurrentOrParentUrl(
-                                                            item.href,
-                                                        ),
-                                                },
+            <div className="flex flex-col space-y-6">
+                <div className="mb-10 sm:mb-5">
+                    {activeShop !== undefined && (
+                        /* FIXED: Changed defaultValue to a dynamic 'value' mapping directly to the active item title */
+                        <Tabs value={activeItem?.title}>
+                            <TabsList
+                                variant={'line'}
+                                className="grid w-full grid-cols-2 sm:grid-cols-4"
+                            >
+                                {items.map((item, index) => (
+                                    <TabsTrigger
+                                        key={`${toUrl(item.href)}-${index}`}
+                                        value={item.title}
+                                        asChild
+                                    >
+                                        <Link href={item.href}>
+                                            {item.icon && (
+                                                <item.icon className="h-4 w-4 shrink-0" />
                                             )}
-                                        >
-                                            <Link href={item.href}>
-                                                {item.icon && (
-                                                    <item.icon className="h-4 w-4" />
-                                                )}
-                                                {item.title}
-                                            </Link>
-                                        </Button>
-                                    ),
-                                )}
-                            </>
-                        )}
-                    </nav>
-                </aside>
-
-                <Separator className="my-6 lg:hidden" />
+                                            <span>{item.title}</span>
+                                        </Link>
+                                    </TabsTrigger>
+                                ))}
+                            </TabsList>
+                        </Tabs>
+                    )}
+                </div>
 
                 <div className="flex-1">
                     <section className="space-y-12">{children}</section>

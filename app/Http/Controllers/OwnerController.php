@@ -90,8 +90,6 @@ class OwnerController extends Controller
    
    }
 
-  
-
    public function staff()        
    {
       return Inertia::render("owner/management/staff"); 

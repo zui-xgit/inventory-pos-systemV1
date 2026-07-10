@@ -2,7 +2,7 @@
 
 use App\Models\Catalog\Product;
 use App\Models\Core\Shop;
-use App\Models\Inventory\Batch;
+use App\Models\Catalog\Batch;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

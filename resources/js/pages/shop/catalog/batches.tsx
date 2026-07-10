@@ -17,6 +17,8 @@ interface BatchItem {
     uuid: string;
     batch_number: string;
     product_name: string;
+    units_per_package_received: number; // Added field mapping from controller
+    packages_received: number; // Added field mapping from controller
     quantity_received: number;
     current_quantity: number;
     cost_price: number;
@@ -69,6 +71,8 @@ const Batches = ({ batches, filters }: Props) => {
                             <TableRow>
                                 <TableHead>Batch Info</TableHead>
                                 <TableHead>Product</TableHead>
+                                <TableHead>Shipment Details</TableHead>{' '}
+                                {/* Updated heading text for accuracy */}
                                 <TableHead>Stock Level</TableHead>
                                 <TableHead>Financials (Cost / Sell)</TableHead>
                                 <TableHead>Expiry</TableHead>
@@ -85,6 +89,22 @@ const Batches = ({ batches, filters }: Props) => {
                                         </TableCell>
                                         <TableCell className="text-foreground">
                                             {batch.product_name}
+                                        </TableCell>
+                                        {/* New Table Cell detailing configuration breakdown per batch packaging parameters */}
+                                        <TableCell className="text-sm">
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="font-medium">
+                                                    {batch.packages_received}{' '}
+                                                    pkgs
+                                                </span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    (
+                                                    {
+                                                        batch.units_per_package_received
+                                                    }{' '}
+                                                    units/pkg)
+                                                </span>
+                                            </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col gap-1">
@@ -140,7 +160,7 @@ const Batches = ({ batches, filters }: Props) => {
                             ) : (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={5}
+                                        colSpan={6} // Increased colSpan to 6 to safely accommodate the added column
                                         className="h-24 text-center text-muted-foreground"
                                     >
                                         No active inventory batches match your

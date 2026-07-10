@@ -22,10 +22,10 @@ import { useState } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
 import InputError from '../input-error';
 import { Spinner } from '../ui/spinner';
-import purchases from '@/routes/purchases';
 import { toast } from 'sonner';
 import { SelectGroup } from '@radix-ui/react-select';
 import { DosageForm, PackageUnit } from '@/types/type';
+import catalog from '@/routes/catalog';
 
 interface NewProductDialogProps {
     trigger: React.ReactNode;
@@ -51,7 +51,7 @@ const NewProductSheet = ({
     const { activeShop } = usePage<{ activeShop: { uuid: string } }>().props;
 
     const handleAddProduct = () => {
-        post(purchases.newProduct({ shop: activeShop.uuid }).url, {
+        post(catalog.newProduct({ shop: activeShop.uuid }).url, {
             preserveState: true,
             preserveScroll: true,
             onSuccess: () => {
@@ -64,6 +64,14 @@ const NewProductSheet = ({
                         position: 'top-right',
                     },
                 );
+            },
+            onError: (errors) => {
+                if (errors.error) {
+                    toast.error(errors.error, {
+                        position: 'top-right',
+                        richColors: true,
+                    });
+                }
             },
         });
     };

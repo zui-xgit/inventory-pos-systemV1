@@ -12,25 +12,9 @@ import {
     CardDescription,
 } from '@/components/ui/card';
 
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { PackagePlus, Plus, Loader2, X } from 'lucide-react';
+import { PackagePlus, Plus, X } from 'lucide-react';
 import Heading from '@/components/heading';
 import SearchInput from '@/components/search-input';
-import purchases from '@/routes/purchases';
 import NewProductSheet from '@/components/sheets/new-product';
 import { DosageForm, PackageUnit, Product } from '@/types/type';
 import { useForm, usePage } from '@inertiajs/react';
@@ -41,6 +25,8 @@ import NewPackageUnitSheet from '@/components/sheets/new-package-unit';
 import NewDosageFormSheet from '@/components/sheets/new-dosage-form';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
+import stock from '@/routes/stock';
+import { StocktConfirmationDialog } from '@/components/dialogs/confirm-create-stock';
 
 interface ReceiveStockProps {
     products: Product[];
@@ -52,6 +38,41 @@ interface ReceiveStockProps {
     package_units: PackageUnit[];
     dosage_forms: DosageForm[];
 }
+
+type UseFormType = {
+    product: Product;
+    expiry_date: string;
+    manufactured_date: string;
+    batch_number: string;
+    cost_price: string | number;
+    selling_price: string | number;
+    units_per_package_received: string | number;
+    packages_received: string | number;
+};
+
+const useFormDefaultValues: UseFormType = {
+    product: {
+        uuid: '',
+        name: '',
+        sku: '',
+        dosage_form: {
+            uuid: '',
+            name: '',
+        },
+        package_unit: {
+            uuid: '',
+            name: '',
+        },
+    },
+    expiry_date: '',
+    manufactured_date: '',
+    batch_number: '',
+    cost_price: '',
+    selling_price: '',
+    units_per_package_received: '',
+    packages_received: '',
+};
+
 const ReceiveStock = ({
     products,
     filters,
@@ -64,39 +85,53 @@ const ReceiveStock = ({
         null,
     );
     const { data, setData, processing, errors, clearErrors, reset, post } =
-        useForm({
-            product_name: '',
-            product_uuid: '',
-            expiry_date: '',
-            manufactured_date: '',
-            batch_number: '',
-            quantity_received: '',
-            cost_price: '',
-            selling_price: '',
-        });
+        useForm<UseFormType>(useFormDefaultValues);
 
     const { activeShop } = usePage<{ activeShop: { uuid: string } }>().props;
+    const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
     const handleRecordStock = () => {
+        if (!selectedProduct) {
+            return;
+        }
         setData({
             ...data, // Preserve other form fields
-            product_name: selectedProduct?.name ?? '', // Fallback to '' instead of null to match initial state
-            product_uuid: selectedProduct?.uuid ?? '',
+            product: selectedProduct,
         });
-        post(purchases.newBatch({ shop: activeShop.uuid }).url, {
+        setShowConfirm(true);
+    };
+    const handleFinalConfirm = () => {
+        post(stock.newBatch({ shop: activeShop.uuid }).url, {
             preserveState: true,
             preserveScroll: true,
             onSuccess: () => {
                 // reset();
                 // clearErrors();
+                setShowConfirm(false);
                 toast.success(`Product Batch added successfully!`, {
                     position: 'top-right',
+                    richColors: true,
                 });
+            },
+            onError: (errors) => {
+                if (errors.error) {
+                    toast.error(errors.error, {
+                        position: 'top-right',
+                        richColors: true,
+                    });
+                }
             },
         });
     };
     return (
         <DashboardInnerLayout>
+            <StocktConfirmationDialog
+                isOpen={showConfirm}
+                onOpenChange={setShowConfirm}
+                data={data}
+                onConfirm={handleFinalConfirm}
+                processing={processing}
+            />
             <div className="space-y-6">
                 {/* Page header */}
                 <Heading
@@ -124,12 +159,12 @@ const ReceiveStock = ({
                                     <span className="text-destructive">*</span>
                                 </Label>
                                 <SearchInput
-                                    href={purchases.receiveStock({
+                                    href={stock.receiveStock({
                                         shop: shop_uuid,
                                     })}
                                     filters={filters}
                                 />
-                                <InputError message={errors.product_name} />
+                                <InputError message={errors.product} />
                                 {selectedProduct && (
                                     <div className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-muted/50 px-3 py-1 text-sm shadow-sm">
                                         <div className="flex items-center gap-2 truncate overflow-hidden">
@@ -326,25 +361,67 @@ const ReceiveStock = ({
 
                                 <div className="space-y-1.5">
                                     <Label className="text-xs font-semibold">
-                                        Quantity Received{' '}
-                                        <span className="text-destructive">
-                                            *
-                                        </span>
+                                        Units Per Package Received
                                     </Label>
                                     <Input
-                                        value={data.quantity_received}
+                                        value={data.units_per_package_received}
                                         onChange={(e) =>
                                             setData(
-                                                'quantity_received',
+                                                'units_per_package_received',
                                                 e.target.value,
                                             )
                                         }
                                         type="number"
-                                        // min={1}
+                                        placeholder="e.g. 15"
+                                    />
+                                    <InputError
+                                        message={
+                                            errors.units_per_package_received
+                                        }
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs font-semibold">
+                                        Packages Received
+                                    </Label>
+                                    <Input
+                                        value={data.packages_received}
+                                        onChange={(e) =>
+                                            setData(
+                                                'packages_received',
+                                                e.target.value,
+                                            )
+                                        }
+                                        type="number"
                                         placeholder="e.g. 100"
                                     />
                                     <InputError
-                                        message={errors.quantity_received}
+                                        message={errors.packages_received}
+                                    />
+                                </div>
+
+                                {/* AUTOMATIC FILLED QUANTITY RECEIVED */}
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs font-semibold">
+                                        Quantity Received{' '}
+                                        <span className="text-destructive">
+                                            (Automatic)
+                                        </span>
+                                    </Label>
+                                    <Input
+                                        value={
+                                            Number(
+                                                data.units_per_package_received ||
+                                                    0,
+                                            ) *
+                                                Number(
+                                                    data.packages_received || 0,
+                                                ) || ''
+                                        }
+                                        type="number"
+                                        placeholder="e.g. 100"
+                                        readOnly
+                                        className="pointer-events-none bg-muted"
                                     />
                                 </div>
                             </div>
@@ -436,10 +513,14 @@ const ReceiveStock = ({
                             <Button
                                 onClick={handleRecordStock}
                                 className="w-full gap-2 rounded-xl font-semibold"
+                                disabled={processing}
                             >
-                                <PackagePlus className="h-4 w-4" />
+                                {processing ? (
+                                    <Spinner />
+                                ) : (
+                                    <PackagePlus className="h-4 w-4" />
+                                )}
                                 Record Stock Receipt
-                                {processing && <Spinner />}
                             </Button>
                         </CardContent>
                     </Card>

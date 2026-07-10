@@ -17,8 +17,21 @@ class DosageFormFactory extends Factory
      */
     public function definition(): array
     {
+
+        $dosageForms = [
+            'tablet',
+            'capsule',
+            'syrup',
+            'suspension',
+            'injection',
+            'ointment',
+            'cream',
+            'gel',
+            'inhaler',
+            'drops'
+        ];
         return [
-            //
+            'name' => fake()->unique()->randomElement($dosageForms),
         ];
     }
 }

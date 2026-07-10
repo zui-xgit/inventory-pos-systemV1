@@ -17,12 +17,7 @@ import {
     CalendarClock,
     Wallet,
     TrendingUp,
-    PackageCheck,
-    ClipboardCheck,
-    ArrowLeftRight,
     History,
-    Truck,
-    Ruler,
     TriangleAlert,
     AlarmClock,
 } from 'lucide-react';
@@ -46,9 +41,9 @@ import type { Auth } from '@/types/auth';
 import owner from '@/routes/owner';
 import NavSubMain from './nav-sub-main';
 import sales from '@/routes/sales';
-import purchases from '@/routes/purchases';
 import { shopOverview } from '@/routes';
 import catalog from '@/routes/catalog';
+import stock from '@/routes/stock';
 
 // OWNER NAVITEMS
 const Overview: NavItem[] = [
@@ -84,7 +79,6 @@ const Account: NavItem[] = [
 ];
 
 // SHOP NAVITEMS
-
 const ShopOverview = (shop_uuid: string): NavItem[] => [
     {
         title: 'Dashboard',
@@ -95,7 +89,7 @@ const ShopOverview = (shop_uuid: string): NavItem[] => [
 
 const ShopSales = (shop_uuid: string): NavItem[] => [
     {
-        title: 'New Sale / POS',
+        title: 'Sale / POS',
         href: sales.newSalePos({ shop: shop_uuid }),
         icon: ShoppingCart,
     },
@@ -106,15 +100,15 @@ const ShopSales = (shop_uuid: string): NavItem[] => [
     },
 ];
 
-const ShopPurchases = (shop_uuid: string): NavItem[] => [
+const ShopStock = (shop_uuid: string): NavItem[] => [
     {
         title: 'Receive Stock',
-        href: purchases.receiveStock({ shop: shop_uuid }),
+        href: stock.receiveStock({ shop: shop_uuid }),
         icon: ShoppingCart,
     },
     {
-        title: 'Received Stock History',
-        href: purchases.history({ shop: shop_uuid }),
+        title: 'Stock History',
+        href: stock.history({ shop: shop_uuid }),
         icon: History,
     },
 ];
@@ -126,46 +120,24 @@ const ShopCatalog = (shop_uuid: string): NavItem[] => [
         icon: Package,
     },
 ];
-// const ShopCatalog = (shop_uuid: string): NavItem[] => [
+
+// const ShopStock: NavItem[] = [
 //     {
-//         title: 'Products',
-//         href: catalog.products({ shop: shop_uuid }),
-//         icon: Package,
+//         title: 'Stock Levels',
+//         href: '#',
+//         icon: PackageCheck,
 //     },
 //     {
-//         title: 'Batches',
-//         href: catalog.batches({ shop: shop_uuid }),
-//         icon: Boxes,
+//         title: 'Stock Taking',
+//         href: '#',
+//         icon: ClipboardCheck,
 //     },
 //     {
-//         title: 'Dosage Forms',
-//         href: catalog.dosageForms({ shop: shop_uuid }),
-//         icon: Truck,
-//     },
-//     {
-//         title: 'Package Units',
-//         href: catalog.packageUnits({ shop: shop_uuid }),
-//         icon: Ruler,
+//         title: 'Stock Movements',
+//         href: '#',
+//         icon: ArrowLeftRight,
 //     },
 // ];
-
-const ShopStock: NavItem[] = [
-    {
-        title: 'Stock Levels',
-        href: '#',
-        icon: PackageCheck,
-    },
-    {
-        title: 'Stock Taking',
-        href: '#',
-        icon: ClipboardCheck,
-    },
-    {
-        title: 'Stock Movements',
-        href: '#',
-        icon: ArrowLeftRight,
-    },
-];
 
 // const ShopReports: NavItem[] = [
 //     {
@@ -331,12 +303,34 @@ export function AppSidebar() {
                     />
                     {/* PURCHASES */}
                     <NavMain
-                        groupLabel={'Purchases'}
-                        items={ShopPurchases(activeShop.uuid)}
+                        groupLabel={'Stock'}
+                        items={ShopStock(activeShop.uuid)}
                     />
                     <NavMain
                         groupLabel={'Catalog'}
                         items={ShopCatalog(activeShop.uuid)}
+                        childrenLinks={[
+                            {
+                                href: catalog.products({
+                                    shop: activeShop.uuid,
+                                }),
+                            },
+                            {
+                                href: catalog.batches({
+                                    shop: activeShop.uuid,
+                                }),
+                            },
+                            {
+                                href: catalog.dosageForms({
+                                    shop: activeShop.uuid,
+                                }),
+                            },
+                            {
+                                href: catalog.packageUnits({
+                                    shop: activeShop.uuid,
+                                }),
+                            },
+                        ]}
                     />
                     {/* <SidebarGroup className="py-0">
                         <SidebarGroupLabel>Catalog</SidebarGroupLabel>

@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
- 
+    
             $table->foreignIdFor(Shop::class)
                 ->constrained()
                 ->cascadeOnDelete();
@@ -45,6 +45,7 @@ return new class extends Migration
  
             // SKU must be unique within a shop
             $table->unique(['shop_id', 'sku']);
+            $table->unique(['shop_id', 'name', 'dosage_form_id', 'package_unit_id']);
         });
     }
 

@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Catalog\Product;
-use App\Models\Inventory\Batch;
+use App\Models\Catalog\Batch;
 use App\Models\Sales\Sale;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

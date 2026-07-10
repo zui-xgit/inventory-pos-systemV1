@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Catalog\DosageForm;
+use App\Models\Catalog\PackageUnit;
 use App\Models\Core\Shop;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -32,27 +34,17 @@ class DatabaseSeeder extends Seeder
         $userA->assignRole($owner_role); 
 
 
-        $userB = User::factory()->create([
-            'username' => 'manager.manager', 
-            'firstname' => 'Alex', 
-            'lastname' => 'Ronaldo', 
-        ]);
-        $userB->assignRole($manager_role); 
-
-
-        $userC = User::factory()->create([
-            'username' => 'cashier.cashier', 
-            'firstname' => 'Lamine', 
-            'lastname' => 'Yamal', 
-        ]);
-        $userC->assignRole($cashier_role); 
-
-
+        
         $shop = Shop::factory()->create(); 
-        $shop->users()->attach($userB->id); 
-        $shop->users()->attach($userC->id); 
 
 
+        DosageForm::factory(10)->create([
+            'shop_id' => $shop->id
+        ]);
+
+        PackageUnit::factory(8)->create([
+            'shop_id' => $shop->id
+        ]);
         
 
 

@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { InertiaLinkProps, Link } from '@inertiajs/react';
 import {
     SidebarGroup,
     SidebarGroupLabel,
@@ -9,12 +9,18 @@ import {
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { NavItem } from '@/types';
 
+interface ChildrenLinks {
+    href: NonNullable<InertiaLinkProps['href']>;
+}
+
 export function NavMain({
     groupLabel,
     items = [],
+    childrenLinks,
 }: {
     groupLabel?: string;
     items: NavItem[];
+    childrenLinks?: ChildrenLinks[];
 }) {
     const { isCurrentUrl } = useCurrentUrl();
 
@@ -23,11 +29,22 @@ export function NavMain({
             {groupLabel && <SidebarGroupLabel>{groupLabel}</SidebarGroupLabel>}
             <SidebarMenu>
                 {items.map((item, index) => {
+                    let isActive = isCurrentUrl(item.href);
+
+                    if (
+                        !isActive &&
+                        childrenLinks &&
+                        childrenLinks.length > 0
+                    ) {
+                        isActive = childrenLinks.some((child) =>
+                            isCurrentUrl(child.href),
+                        );
+                    }
                     return (
                         <SidebarMenuItem key={index}>
                             <SidebarMenuButton
                                 asChild
-                                isActive={isCurrentUrl(item.href)}
+                                isActive={isActive}
                                 tooltip={{ children: item.title }}
                             >
                                 <Link href={item.href} prefetch>

@@ -15,8 +15,8 @@ import { useState } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
 import { Loader2 } from 'lucide-react';
 import InputError from '../input-error';
-import purchases from '@/routes/purchases';
 import { toast } from 'sonner';
+import catalog from '@/routes/catalog';
 
 interface NewDosageFormSheetProps {
     trigger: React.ReactNode;
@@ -36,7 +36,7 @@ const NewDosageFormSheet = ({ trigger }: NewDosageFormSheetProps) => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        post(purchases.newDosageForm({ shop: activeShop.uuid }).url, {
+        post(catalog.newDosageForm({ shop: activeShop.uuid }).url, {
             preserveState: true,
             preserveScroll: true,
             onSuccess: () => {

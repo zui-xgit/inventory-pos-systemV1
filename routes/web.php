@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Catalog\CatalogController;
 use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\Stock\StockController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -10,34 +12,33 @@ Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified', 'shop.member'])->group(function (){
 
-    //overview 
+    //SHOP OVERVIEW
     Route::get('shops/{shop:uuid}', [ShopController::class, "overviewDashboard"])->name('shop-overview'); 
    
-    //Sales
+    //SALES
     Route::get('shops/{shop:uuid}/new-sale-pos', [ShopController::class, "newSalePos"])->name('sales.new-sale-pos'); 
     Route::get('shops/{shop:uuid}/sales-history', [ShopController::class, "salesHistory"])->name('sales.history'); 
     
     
 
 
-    //Purchases
-    Route::get('shops/{shop:uuid}/new-purchase', [ShopController::class, "receiveStock"])->name('purchases.receive-stock'); 
-    Route::get('shops/{shop:uuid}/purchases-history', [ShopController::class, "purchasesHistory"])->name('purchases.history');
-    Route::post('shops/{shop:uuid}/new-package-unit', [ShopController::class, "createPackageUnit"])->name('purchases.new-package-unit');
-    Route::post('shops/{shop:uuid}/new-dosage-form', [ShopController::class, "createDosageForm"])->name('purchases.new-dosage-form');
-    Route::post('shops/{shop:uuid}/new-product', [ShopController::class, "createProduct"])->name('purchases.new-product');
-    Route::post('shops/{shop:uuid}/new-batch', [ShopController::class, "createBatch"])->name('purchases.new-batch');
 
-    // // catalog
-    Route::get('shops/{shop:uuid}/catalog/products', [ShopController::class, "productsCatalog"])->name('catalog.products'); 
-    Route::get('shops/{shop:uuid}/catalog/batches', [ShopController::class, "batchesCatalog"])->name('catalog.batches'); 
-    Route::get('shops/{shop:uuid}/catalog/dosage-forms', [ShopController::class, "dosageFormsCatalog"])->name('catalog.dosage-forms'); 
-    Route::get('shops/{shop:uuid}/catalog/package-units', [ShopController::class, "packageUnitsCatalog"])->name('catalog.package-units'); 
+    //CATALOG
+    Route::get('shops/{shop:uuid}/catalog/products', [CatalogController::class, "productsCatalog"])->name('catalog.products'); 
+    Route::get('shops/{shop:uuid}/catalog/batches', [CatalogController::class, "batchesCatalog"])->name('catalog.batches'); 
+    Route::get('shops/{shop:uuid}/catalog/dosage-forms', [CatalogController::class, "dosageFormsCatalog"])->name('catalog.dosage-forms'); 
+    Route::get('shops/{shop:uuid}/catalog/package-units', [CatalogController::class, "packageUnitsCatalog"])->name('catalog.package-units'); 
+    Route::post('shops/{shop:uuid}/catalog/new-package-unit', [CatalogController::class, "createPackageUnit"])->name('catalog.new-package-unit');
+    Route::post('shops/{shop:uuid}/catalog/new-dosage-form', [CatalogController::class, "createDosageForm"])->name('catalog.new-dosage-form');
+    Route::post('shops/{shop:uuid}/catalog/new-product', [CatalogController::class, "createProduct"])->name('catalog.new-product');
 
-    // // Stock
-    // Route::get('shops/{shop:uuid}', [ShopController::class, "stockLevels"])->name('stock.levels'); 
-    // Route::get('shops/{shop:uuid}', [ShopController::class, "stockTaking"])->name('stock.taking'); 
-    // Route::get('shops/{shop:uuid}', [ShopController::class, "stockMovement"])->name('stock.movement'); 
+
+    // Stock
+    Route::get('shops/{shop:uuid}/stock/receive-stock', [StockController::class, "receiveStock"])->name('stock.receive-stock'); 
+    Route::get('shops/{shop:uuid}/stock/stock-history', [StockController::class, "stockHistory"])->name('stock.history');
+    Route::post('shops/{shop:uuid}/stock/new-batch', [StockController::class, "createBatch"])->name('stock.new-batch');
+
+     
 
     // // Reports
     // Route::get('shops/{shop:uuid}', [ShopController::class, "reportSales"])->name('reports.sales'); 
