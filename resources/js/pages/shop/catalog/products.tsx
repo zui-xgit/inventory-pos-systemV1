@@ -13,15 +13,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import NewProductSheet from '@/components/sheets/new-product';
-import { DosageForm, PackageUnit } from '@/types/type';
+import { DosageForm } from '@/types/type';
 
 interface ProductItem {
     uuid: string;
     name: string;
-    sku: string;
-    is_active: boolean;
     dosage_form: { uuid: string; name: string };
-    package_unit: { uuid: string; name: string };
 }
 
 interface Props {
@@ -33,15 +30,9 @@ interface Props {
         search?: string;
     };
     dosage_forms: DosageForm[];
-    package_units: PackageUnit[];
 }
 
-const Products = ({
-    products,
-    filters,
-    dosage_forms,
-    package_units,
-}: Props) => {
+const Products = ({ products, filters, dosage_forms }: Props) => {
     return (
         <>
             <Head title="Products Catalog" />
@@ -60,7 +51,6 @@ const Products = ({
                                 <Plus className="mr-2 h-4 w-4" /> Add Product
                             </Button>
                         }
-                        package_units={package_units}
                         dosage_forms={dosage_forms}
                     />
                 </div>
@@ -80,10 +70,9 @@ const Products = ({
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Name</TableHead>
-                                <TableHead>SKU / Barcode</TableHead>
+                                {/* <TableHead>SKU / Barcode</TableHead> */}
                                 <TableHead>Dosage Form</TableHead>
-                                <TableHead>Package Unit</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead>Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -93,30 +82,19 @@ const Products = ({
                                         <TableCell className="font-medium text-foreground">
                                             {product.name}
                                         </TableCell>
-                                        <TableCell className="font-mono text-xs text-muted-foreground">
+                                        {/* <TableCell className="font-mono text-xs text-muted-foreground">
                                             {product.sku}
-                                        </TableCell>
+                                        </TableCell> */}
                                         <TableCell>
                                             <Badge variant="outline">
                                                 {product.dosage_form.name}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>
-                                            <Badge variant="secondary">
-                                                {product.package_unit.name}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                variant={
-                                                    product.is_active
-                                                        ? 'default'
-                                                        : 'destructive'
-                                                }
-                                            >
-                                                {product.is_active
-                                                    ? 'Active'
-                                                    : 'Inactive'}
+
+                                        <TableCell className="flex items-center justify-start gap-4">
+                                            <Badge>Edit</Badge>
+                                            <Badge variant={'destructive'}>
+                                                Delete
                                             </Badge>
                                         </TableCell>
                                     </TableRow>

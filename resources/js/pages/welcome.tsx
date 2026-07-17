@@ -14,18 +14,22 @@ import {
 } from 'lucide-react';
 import owner from '@/routes/owner';
 import { RouteDefinition } from '@/wayfinder';
+import { Auth } from '@/types';
 
 export default function Welcome() {
-    const { auth } = usePage().props;
+    const { activeShop, auth } = usePage<{
+        activeShop: { uuid: string } | undefined;
+        auth: Auth;
+    }>().props;
 
-    let homeHref: RouteDefinition<'get'> =
+    let dashboardHref: RouteDefinition<'get'> =
         '#' as unknown as RouteDefinition<'get'>;
 
     if (auth.user) {
         if (auth.user.isOwner) {
-            homeHref = owner.shops();
-        } else if (auth.user.isManagerOrCashier) {
-            homeHref = shopOverview({ shop: auth.user.shop_uuid });
+            dashboardHref = owner.shops();
+        } else if (auth.user.isManagerOrCashier && activeShop !== undefined) {
+            dashboardHref = shopOverview({ shop: activeShop.uuid });
         }
     }
 
@@ -56,7 +60,7 @@ export default function Welcome() {
                     <nav className="flex items-center gap-4">
                         {auth.user ? (
                             <Link
-                                href={homeHref}
+                                href={dashboardHref}
                                 className="hover:bg-emerald-505 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-600/10 transition-all dark:shadow-emerald-600/5"
                             >
                                 <LayoutDashboard className="h-4 w-4" />

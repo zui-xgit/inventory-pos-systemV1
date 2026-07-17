@@ -23,14 +23,14 @@ const sidebarNavItems = (shop_uuid: string): NavItem[] => [
         href: catalog.dosageForms({ shop: shop_uuid }),
         icon: Pill,
     },
-    {
-        title: 'Package Units',
-        href: catalog.packageUnits({ shop: shop_uuid }),
-        icon: Package2,
-    },
+    // {
+    //     title: 'Package Units',
+    //     href: catalog.packageUnits({ shop: shop_uuid }),
+    //     icon: Package2,
+    // },
 ];
 
-export default function CatalogLayout({ children }: PropsWithChildren) {
+export default function ShopCatalogLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
     const { activeShop } = usePage<{

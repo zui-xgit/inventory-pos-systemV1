@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     FolderGit2,
@@ -44,6 +44,7 @@ import sales from '@/routes/sales';
 import { shopOverview } from '@/routes';
 import catalog from '@/routes/catalog';
 import stock from '@/routes/stock';
+import { Button } from './ui/button';
 
 // OWNER NAVITEMS
 const Overview: NavItem[] = [
@@ -389,6 +390,18 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 {/* <NavFooter items={footerNavItems} className="mt-auto" /> */}
+                {/* if the role is owner and there is an active shop then show the admin dashboard button */}
+                {auth.user.isOwner && activeShop && (
+                    <Button
+                        onClick={() => {
+                            router.get(owner.shops());
+                        }}
+                        className="cursor-pointer justify-start px-0 py-0"
+                        variant={'link'}
+                    >
+                        Main Dashboard
+                    </Button>
+                )}
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

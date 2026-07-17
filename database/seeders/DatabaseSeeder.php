@@ -34,17 +34,23 @@ class DatabaseSeeder extends Seeder
         $userA->assignRole($owner_role); 
 
 
+        $userB = User::factory()->create([
+            'username' => 'manager.manager', 
+            'firstname' => 'manager', 
+            'lastname' => 'juma'
+        ]); 
+        $userB->assignRole($manager_role); 
+
         
         $shop = Shop::factory()->create(); 
+        $userB->shops()->attach($shop->id); 
 
 
         DosageForm::factory(10)->create([
             'shop_id' => $shop->id
         ]);
 
-        PackageUnit::factory(8)->create([
-            'shop_id' => $shop->id
-        ]);
+       
         
 
 

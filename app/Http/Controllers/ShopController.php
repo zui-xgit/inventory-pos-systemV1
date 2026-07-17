@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Catalog\Batch;
 use App\Models\Catalog\DosageForm;
-use App\Models\Catalog\PackageUnit;
 use App\Models\Catalog\Product;
 use App\Models\Core\Shop;
 use App\Models\Inventory\Alert;
@@ -74,7 +73,7 @@ class ShopController extends Controller
                     ->whereDate('created_at', $today)
                     ->where('status', 'completed');
             })
-            ->with(['product.dosageForm', 'product.packageUnit'])
+            ->with(['product.dosageForm'])
             ->get() // Fetch records safely using framework drivers
             ->groupBy('product_id')
             ->map(function ($items) {
@@ -84,7 +83,6 @@ class ShopController extends Controller
                     'id'         => $firstItem->product_id,
                     'name'       => $firstItem->product?->name,
                     'form'       => $firstItem->product?->dosageForm?->name ?? 'N/A',
-                    'unit'       => $firstItem->product?->packageUnit?->name ?? 'N/A',
                     'units_sold' => (int) $items->sum('quantity'),   // Pure collection math
                     'revenue'    => (float) $items->sum('subtotal'), // Pure collection math
                 ];

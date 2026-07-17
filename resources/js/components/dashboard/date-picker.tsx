@@ -48,6 +48,8 @@ const DatePicker = ({
                 <Calendar
                     mode="single"
                     selected={dateValue}
+                    captionLayout="dropdown"
+
                     onSelect={(date) => {
                         if (date) {
                             // Standardizes date format to YYYY-MM-DD for form presentation/DB entry
@@ -56,6 +58,11 @@ const DatePicker = ({
                             onChange('');
                         }
                     }}
+
+                    // Sets the historical boundary to January, 10 years ago
+                    startMonth={new Date(new Date().getFullYear() - 10, 0)}
+                    // Sets the forward boundary to the current month
+                    endMonth={new Date(new Date().getFullYear() + 10, 0)}
                 />
             </PopoverContent>
         </Popover>

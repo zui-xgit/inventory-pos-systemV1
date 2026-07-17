@@ -71,7 +71,7 @@ const Batches = ({ batches, filters }: Props) => {
                             <TableRow>
                                 <TableHead>Batch Info</TableHead>
                                 <TableHead>Product</TableHead>
-                                <TableHead>Shipment Details</TableHead>{' '}
+                                <TableHead>Shipment Details</TableHead>
                                 {/* Updated heading text for accuracy */}
                                 <TableHead>Stock Level</TableHead>
                                 <TableHead>Financials (Cost / Sell)</TableHead>

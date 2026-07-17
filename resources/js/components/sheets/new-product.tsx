@@ -24,27 +24,21 @@ import InputError from '../input-error';
 import { Spinner } from '../ui/spinner';
 import { toast } from 'sonner';
 import { SelectGroup } from '@radix-ui/react-select';
-import { DosageForm, PackageUnit } from '@/types/type';
+import { DosageForm } from '@/types/type';
 import catalog from '@/routes/catalog';
 
 interface NewProductDialogProps {
     trigger: React.ReactNode;
-    package_units: PackageUnit[];
     dosage_forms: DosageForm[]; // Assuming dosage forms have the same structure as package units
 }
 
-const NewProductSheet = ({
-    trigger,
-    package_units,
-    dosage_forms,
-}: NewProductDialogProps) => {
+const NewProductSheet = ({ trigger, dosage_forms }: NewProductDialogProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const { data, setData, processing, errors, post, reset, clearErrors } =
         useForm({
             name: '',
             dosage_form_uuid: '',
-            package_unit_uuid: '',
-            sku: '',
+            // sku: '',
         });
 
     // Grab your active shop from Inertia props if needed to formulate URLs
@@ -62,6 +56,7 @@ const NewProductSheet = ({
                     `New "${data.name}" product added successfully!`,
                     {
                         position: 'top-right',
+                        richColors: true,
                     },
                 );
             },
@@ -157,53 +152,8 @@ const NewProductSheet = ({
 
                         <InputError message={errors.dosage_form_uuid} />
                     </div>
-                    <div className="flex flex-col space-y-1.5">
-                        <Label className="text-xs font-semibold">
-                            Package Unit
-                        </Label>
 
-                        <Select
-                            value={data.package_unit_uuid}
-                            onValueChange={(value) =>
-                                setData('package_unit_uuid', value)
-                            }
-                        >
-                            <SelectTrigger className="w-full rounded-xl text-xs">
-                                <SelectValue placeholder="Select unit" />
-                            </SelectTrigger>
-
-                            <SelectContent>
-                                <SelectGroup>
-                                    {package_units &&
-                                    package_units.length > 0 ? (
-                                        <>
-                                            {package_units.map(
-                                                (package_unit) => (
-                                                    <SelectItem
-                                                        key={package_unit.uuid}
-                                                        value={
-                                                            package_unit.uuid
-                                                        }
-                                                        className="text-sm"
-                                                    >
-                                                        {package_unit.name}
-                                                    </SelectItem>
-                                                ),
-                                            )}
-                                        </>
-                                    ) : (
-                                        <>
-                                            NO units , please create units first
-                                        </>
-                                    )}
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-
-                        <InputError message={errors.package_unit_uuid} />
-                    </div>
-
-                    <div className="space-y-1.5">
+                    {/* <div className="space-y-1.5">
                         <Label
                             htmlFor="prod-sku"
                             className="text-xs font-semibold"
@@ -218,7 +168,7 @@ const NewProductSheet = ({
                             className="rounded-xl text-sm"
                         />
                         <InputError message={errors.sku} />
-                    </div>
+                    </div> */}
                 </div>
 
                 <SheetFooter className="flex-row items-center justify-end gap-2 border-t pt-4">

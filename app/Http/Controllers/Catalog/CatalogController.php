@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Catalog;
 use App\Http\Controllers\Controller;
 use App\Models\Catalog\Batch;
 use App\Models\Catalog\DosageForm;
-use App\Models\Catalog\PackageUnit;
 use App\Models\Catalog\Product;
 use App\Models\Core\Shop;
 use Exception;
@@ -36,7 +35,6 @@ class CatalogController extends Controller
             })
             ->with([
                 'dosageForm:id,uuid,name',
-                'packageUnit:id,uuid,name'
             ])
             ->latest()
             ->paginate(15)
@@ -45,27 +43,20 @@ class CatalogController extends Controller
                 return [
                     'uuid'         => $product->uuid,
                     'name'         => $product->name,
-                    'sku'          => $product->sku ?? 'N/A',
-                    'is_active'    => $product->is_active,
                     'dosage_form'  => [
                         'uuid' => $product->dosageForm?->uuid,
                         'name' => $product->dosageForm?->name ?? 'N/A',
                     ],
-                    'package_unit' => [
-                        'uuid' => $product->packageUnit?->uuid,
-                        'name' => $product->packageUnit?->name ?? 'N/A',
-                    ],
+                    
                 ];
         });
 
-        $package_units = $shop->packageUnits()->get(['uuid', 'name']);
         $dosage_forms = $shop->dosageForms()->get(['uuid', 'name']);
 
 
         return Inertia::render('shop/catalog/products', [
             'products' => $products,
             'filters'  => $request->only(['search']),
-            'package_units' => $package_units, 
             'dosage_forms' => $dosage_forms
         ]); 
         
@@ -130,7 +121,6 @@ class CatalogController extends Controller
                     'uuid'           => $form->uuid,
                     'name'           => $form->name,
                     'products_count' => $form->products_count,
-                    'is_active'      => $form->is_active ?? true,
                 ];
         });
         return Inertia::render('shop/catalog/dosage-forms', [
@@ -139,64 +129,8 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function packageUnitsCatalog(Request $request, Shop $shop)
-    {   
-        $search_input = $request->input('search'); 
-        $search = strtolower($search_input);
+    
 
-        $packageUnits = PackageUnit::where('shop_id', $shop->id)
-            ->when($search, function ($query, $search) {
-                $query->where('name', 'LIKE', "%{$search}%");
-            })
-            ->withCount(['products']) // Eager-load relation volume
-            ->latest()
-            ->paginate(10)
-            ->withQueryString()
-            ->through(function ($unit) {
-                return [
-                    'uuid'           => $unit->uuid,
-                    'name'           => $unit->name,
-                    'products_count' => $unit->products_count,
-                    'is_active'      => $unit->is_active ?? true,
-                ];
-        });
-
-        return Inertia::render('shop/catalog/package-units', [
-            'packageUnits' => $packageUnits,
-            'filters'      => $request->only(['search']),
-        ]); 
-    }
-
-    public function createPackageUnit(Request $request, Shop $shop )
-    {
-        $request->merge([
-            'name' => strtolower($request->input('name')),
-        ]);
-
-        $validated = $request->validate([   
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                // Checks the 'units' table, ensuring 'name' is unique where 'shop_id' matches the current shop
-                Rule::unique('package_units')->where(function ($query) use ($shop) {
-                    return $query->where('shop_id', $shop->id);
-                }),
-            ],
-        ]); 
-
-
-        try{
-            DB::beginTransaction();
-            $shop->packageUnits()->create([
-                'name' => $validated['name'],
-            ]);
-            DB::commit();
-        }catch(Exception $e){
-            DB::rollback();
-            return back()->withErrors(['error' => 'Failed to create unit: ']);
-        }
-    }
 
     public function createDosageForm(Request $request, Shop $shop)
     {
@@ -235,7 +169,7 @@ class CatalogController extends Controller
 
         $request->merge([
             'name' => strtolower($request->input('name')), 
-            'sku' => strtolower($request->input('sku')),
+            // 'sku' => strtolower($request->input('sku')),
         ]);
 
 
@@ -245,18 +179,14 @@ class CatalogController extends Controller
                 'required',
                 'exists:dosage_forms,uuid', // Ensure the form exists in the dosage_forms table
             ],
-            'package_unit_uuid' => [
-                'required',
-                'exists:package_units,uuid', // Ensure the unit exists in the units table
-            ],
-            'sku' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('products')->where(function ($query) use ($shop) {
-                    return $query->where('shop_id', $shop->id);
-                }),
-            ],
+            // 'sku' => [
+            //     'required',
+            //     'string',
+            //     'max:255',
+            //     Rule::unique('products')->where(function ($query) use ($shop) {
+            //         return $query->where('shop_id', $shop->id);
+            //     }),
+            // ],
         ]);
 
 
@@ -265,20 +195,17 @@ class CatalogController extends Controller
 
             // Fetch the unit by UUID
             $dosage_form = $shop->dosageForms()->where('uuid', $validated['dosage_form_uuid'])->firstOrFail();
-            $package_unit = $shop->packageUnits()->where('uuid', $validated['package_unit_uuid'])->firstOrFail();
-
-            // Create the product with the associated unit_id
+            
             $shop->products()->create([
                 'name' => $validated['name'],
                 'dosage_form_id' => $dosage_form->id, 
-                'package_unit_id' => $package_unit->id,
-                'sku' => $validated['sku'],
+                // 'sku' => $validated['sku'],
             ]);
 
             DB::commit();
         } catch(UniqueConstraintViolationException $e){ 
             DB::rollBack();
-            return back()->withErrors(['error' => 'A product with this identical name, dosage form, and package unit already exists.']);   
+            return back()->withErrors(['error' => 'A product with this identical name and dosage form, already exists.']);   
         } catch (Exception $e) {
             DB::rollback();
             return back()->withErrors(['error' => 'Failed to create product: ']);
@@ -286,4 +213,72 @@ class CatalogController extends Controller
 
         
     }
+
+     public function createBatch(Request $request, Shop $shop)
+    {
+        $request->merge([
+            'batch_number' => strtolower($request->input('batch_number')),
+        ]);
+
+        $validated = $request->validate([
+            'confirmed'                  => ['boolean'], 
+            'product'                    => ['required', 'array'],
+            'product.uuid'               => ['required', 'uuid', Rule::exists('products', 'uuid')->where('shop_id', $shop->id)],
+            'batch_number'               => ['required', 'string', 'max:100'],
+            'cost_price'                 => ['required', 'numeric', 'min:0'],
+            'selling_price'              => ['required', 'numeric', 'min:0', 'gte:cost_price'], 
+            'manufactured_date'          => ['required', 'date', 'before_or_equal:today'],
+            'expiry_date'                => ['required', 'date', 'after:today'],
+            'units_per_package_received' => ['required', 'integer', 'min:1'],
+            'packages_received'          => ['required', 'integer', 'min:1'],
+        ]);
+
+
+        // Calculate total calculated stock quantities
+        $totalQuantityReceived = $validated['units_per_package_received'] * $validated['packages_received'];
+
+
+        // STAGE 1: Validation passed, but user hasn't seen the modal yet
+        if ($validated['confirmed'] === false) {
+            Inertia::flash('prompt_confirmation',  [
+                'message' => "You are about to receive {$totalQuantityReceived} total units into inventory."
+            ]);
+            return back(); 
+        }
+
+        
+        try {
+            DB::beginTransaction(); 
+
+            $product = Product::where('uuid', $validated['product']['uuid'])
+                ->where('shop_id', $shop->id)
+                ->firstOrFail();
+
+            
+
+            // 2. Persist the database record
+            Batch::create([
+                'shop_id'                    => $shop->id,
+                'product_id'                 => $product->id,
+                'batch_number'               => $validated['batch_number'],
+                'expiry_date'                => $validated['expiry_date'],
+                'manufactured_date'          => $validated['manufactured_date'],
+                'units_per_package_received' => $validated['units_per_package_received'],
+                'packages_received'          => $validated['packages_received'],
+                'quantity_received'          => $totalQuantityReceived,
+                'quantity_remaining'         => $totalQuantityReceived, 
+                'cost_price'                 => $validated['cost_price'],
+                'selling_price'              => $validated['selling_price'],
+            ]);
+
+            DB::commit();
+
+
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            return back()->with('error', 'Failed to create the batch record. Please try again.');
+        }
+    }
+
 }

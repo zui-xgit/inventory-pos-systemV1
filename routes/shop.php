@@ -1,12 +1,9 @@
 <?php
 
-
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Catalog\CatalogController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\Stock\StockController;
-
-Route::inertia('/', 'welcome')->name('home')->middleware('is.manager_or_cashier');
+use Illuminate\Support\Facades\Route;
 
 
 
@@ -27,18 +24,13 @@ Route::prefix('shop/{shop:uuid}')->middleware(['auth', 'verified', 'shop.member'
     Route::get('catalog/package-units', [CatalogController::class, "packageUnitsCatalog"])->name('catalog.package-units'); 
     Route::post('catalog/new-dosage-form', [CatalogController::class, "createDosageForm"])->name('catalog.new-dosage-form');
     Route::post('catalog/new-product', [CatalogController::class, "createProduct"])->name('catalog.new-product');
-    Route::post('stock/new-batch', [CatalogController::class, "createBatch"])->name('stock.new-batch');
 
 
     // Stock
     Route::get('stock/receive-stock', [StockController::class, "receiveStock"])->name('stock.receive-stock'); 
     Route::get('stock/stock-history', [StockController::class, "stockHistory"])->name('stock.history');
+    Route::post('stock/new-batch', [StockController::class, "createBatch"])->name('stock.new-batch');
 
      
 
 }); 
-
-
-require __DIR__.'/owner.php';
-// require __DIR__.'/shop.php';
-require __DIR__.'/settings.php';

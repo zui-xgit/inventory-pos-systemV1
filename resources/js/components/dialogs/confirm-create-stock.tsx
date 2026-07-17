@@ -77,7 +77,6 @@ export function StocktConfirmationDialog({
                                     {/* Optional chaining protects against empty objects */}
                                     {data.product?.name || '-'}{' '}
                                     {data.product?.dosage_form.name || ''}{' '}
-                                    {data.product?.package_unit.name || ''}
                                 </TableCell>
                             </TableRow>
                             <TableRow>

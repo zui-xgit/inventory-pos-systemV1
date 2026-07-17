@@ -16,7 +16,7 @@ import { PackagePlus, Plus, X } from 'lucide-react';
 import Heading from '@/components/heading';
 import SearchInput from '@/components/search-input';
 import NewProductSheet from '@/components/sheets/new-product';
-import { DosageForm, PackageUnit, Product } from '@/types/type';
+import { DosageForm, Product } from '@/types/type';
 import { useForm, usePage } from '@inertiajs/react';
 import DatePicker from '@/components/dashboard/date-picker';
 import InputError from '@/components/input-error';
@@ -35,11 +35,11 @@ interface ReceiveStockProps {
     };
     shop_uuid: string;
     search_input: string | null;
-    package_units: PackageUnit[];
     dosage_forms: DosageForm[];
 }
 
 type UseFormType = {
+    confirmed: boolean;
     product: Product;
     expiry_date: string;
     manufactured_date: string;
@@ -51,15 +51,12 @@ type UseFormType = {
 };
 
 const useFormDefaultValues: UseFormType = {
+    confirmed: false,
     product: {
         uuid: '',
         name: '',
         sku: '',
         dosage_form: {
-            uuid: '',
-            name: '',
-        },
-        package_unit: {
             uuid: '',
             name: '',
         },
@@ -78,7 +75,6 @@ const ReceiveStock = ({
     filters,
     shop_uuid,
     search_input,
-    package_units,
     dosage_forms,
 }: ReceiveStockProps) => {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(
@@ -91,27 +87,36 @@ const ReceiveStock = ({
     const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
     const handleRecordStock = () => {
-        if (!selectedProduct) {
-            return;
-        }
-        setData({
-            ...data, // Preserve other form fields
-            product: selectedProduct,
-        });
-        setShowConfirm(true);
+        const updatedData = {
+            ...data,
+            product: selectedProduct ?? undefined,
+            confirmed: false,
+        };
+        setData(updatedData);
+        handleDataPostRequest();
     };
-    const handleFinalConfirm = () => {
+    const handleDataPostRequest = () => {
         post(stock.newBatch({ shop: activeShop.uuid }).url, {
             preserveState: true,
             preserveScroll: true,
-            onSuccess: () => {
+            onSuccess: (page) => {
                 // reset();
                 // clearErrors();
-                setShowConfirm(false);
-                toast.success(`Product Batch added successfully!`, {
-                    position: 'top-right',
-                    richColors: true,
-                });
+
+                if (page.flash.prompt_confirmation) {
+                    setData({
+                        ...data,
+                        product: selectedProduct ?? undefined,
+                        confirmed: true,
+                    });
+                    setShowConfirm(true);
+                } else {
+                    setShowConfirm(false);
+                    toast.success(`Product Batch added successfully !`, {
+                        position: 'top-right',
+                        richColors: true,
+                    });
+                }
             },
             onError: (errors) => {
                 if (errors.error) {
@@ -129,7 +134,7 @@ const ReceiveStock = ({
                 isOpen={showConfirm}
                 onOpenChange={setShowConfirm}
                 data={data}
-                onConfirm={handleFinalConfirm}
+                onConfirm={handleDataPostRequest}
                 processing={processing}
             />
             <div className="space-y-6">
@@ -180,15 +185,6 @@ const ReceiveStock = ({
                                                         .name
                                                 }
                                             </Badge>
-                                            <Badge
-                                                variant="outline"
-                                                className="h-4 shrink-0 py-0 text-[10px]"
-                                            >
-                                                {
-                                                    selectedProduct.package_unit
-                                                        .name
-                                                }
-                                            </Badge>
                                         </div>
 
                                         {/* Clear button to let them search again */}
@@ -232,16 +228,6 @@ const ReceiveStock = ({
                                                             {
                                                                 product
                                                                     .dosage_form
-                                                                    .name
-                                                            }
-                                                        </Badge>
-                                                        <Badge
-                                                            variant="outline"
-                                                            className="bg-background py-0 text-[10px]"
-                                                        >
-                                                            {
-                                                                product
-                                                                    .package_unit
                                                                     .name
                                                             }
                                                         </Badge>
@@ -302,7 +288,6 @@ const ReceiveStock = ({
                                             Add New Product - If not available
                                         </Button>
                                     }
-                                    package_units={package_units}
                                     dosage_forms={dosage_forms}
                                 />
                             </div>
@@ -512,7 +497,7 @@ const ReceiveStock = ({
                             {/* Submit */}
                             <Button
                                 onClick={handleRecordStock}
-                                className="w-full gap-2 rounded-xl font-semibold"
+                                className="w-full cursor-pointer gap-2 rounded-xl font-semibold"
                                 disabled={processing}
                             >
                                 {processing ? (

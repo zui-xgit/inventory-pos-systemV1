@@ -11,14 +11,14 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { PersonStanding, Plus } from 'lucide-react';
 import NewDosageFormSheet from '@/components/sheets/new-dosage-form';
+import { ConfirmAlertDialog } from '@/components/dialogs/confirm-alert-dialog';
 
 interface DosageFormItem {
     uuid: string;
     name: string;
     products_count: number;
-    is_active: boolean;
 }
 
 interface Props {
@@ -32,6 +32,7 @@ interface Props {
 }
 
 const DosageForms = ({ dosageForms, filters }: Props) => {
+    const handleConfirmDelete = () => {};
     return (
         <>
             <Head title="Dosage Forms Catalog" />
@@ -71,7 +72,7 @@ const DosageForms = ({ dosageForms, filters }: Props) => {
                             <TableRow>
                                 <TableHead>Form Name</TableHead>
                                 <TableHead>Linked Products</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead>Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -89,18 +90,25 @@ const DosageForms = ({ dosageForms, filters }: Props) => {
                                                     : 'products'}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                variant={
-                                                    form.is_active
-                                                        ? 'default'
-                                                        : 'destructive'
-                                                }
-                                            >
-                                                {form.is_active
-                                                    ? 'Active'
-                                                    : 'Inactive'}
+                                        <TableCell className="flex items-center justify-start gap-2">
+                                            <Badge>Edit</Badge>
+                                            <Badge variant={'destructive'}>
+                                                Delete
                                             </Badge>
+                                            <ConfirmAlertDialog
+                                                trigger={
+                                                    <Button
+                                                        variant={'destructive'}
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                }
+                                                title="Confirm Delete"
+                                                description={
+                                                    'Are you sure you want to delete this dosage form ? '
+                                                }
+                                                onConfirm={handleConfirmDelete}
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 ))
