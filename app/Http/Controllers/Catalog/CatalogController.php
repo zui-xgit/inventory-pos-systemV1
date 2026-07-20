@@ -7,6 +7,7 @@ use App\Models\Catalog\Batch;
 use App\Models\Catalog\DosageForm;
 use App\Models\Catalog\Product;
 use App\Models\Core\Shop;
+use App\Models\Inventory\Stock;
 use Exception;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -214,7 +215,7 @@ class CatalogController extends Controller
         
     }
 
-     public function createBatch(Request $request, Shop $shop)
+    public function createBatch(Request $request, Shop $shop)
     {
         $request->merge([
             'batch_number' => strtolower($request->input('batch_number')),
@@ -224,7 +225,12 @@ class CatalogController extends Controller
             'confirmed'                  => ['boolean'], 
             'product'                    => ['required', 'array'],
             'product.uuid'               => ['required', 'uuid', Rule::exists('products', 'uuid')->where('shop_id', $shop->id)],
-            'batch_number'               => ['required', 'string', 'max:100'],
+            // 'batch_number'               => ['required', 'string', 'max:100'],
+            'batch_number'               => ['required', 'string', 'max:100',
+                Rule::unique('batches', 'batch_number')
+                    ->where('shop_id', $shop->id)
+                    ->where('product_id', Product::where('uuid', $request->input('product.uuid'))->value('id'))
+            ],
             'cost_price'                 => ['required', 'numeric', 'min:0'],
             'selling_price'              => ['required', 'numeric', 'min:0', 'gte:cost_price'], 
             'manufactured_date'          => ['required', 'date', 'before_or_equal:today'],
@@ -238,7 +244,7 @@ class CatalogController extends Controller
         $totalQuantityReceived = $validated['units_per_package_received'] * $validated['packages_received'];
 
 
-        // STAGE 1: Validation passed, but user hasn't seen the modal yet
+        //  1: Validation passed, but user hasn't seen the confirmation dialog yet - so show the dialog first to confirm
         if ($validated['confirmed'] === false) {
             Inertia::flash('prompt_confirmation',  [
                 'message' => "You are about to receive {$totalQuantityReceived} total units into inventory."
@@ -256,8 +262,8 @@ class CatalogController extends Controller
 
             
 
-            // 2. Persist the database record
-            Batch::create([
+            // 2. Create batch
+            $batch = Batch::create([
                 'shop_id'                    => $shop->id,
                 'product_id'                 => $product->id,
                 'batch_number'               => $validated['batch_number'],
@@ -265,19 +271,26 @@ class CatalogController extends Controller
                 'manufactured_date'          => $validated['manufactured_date'],
                 'units_per_package_received' => $validated['units_per_package_received'],
                 'packages_received'          => $validated['packages_received'],
-                'quantity_received'          => $totalQuantityReceived,
-                'quantity_remaining'         => $totalQuantityReceived, 
                 'cost_price'                 => $validated['cost_price'],
                 'selling_price'              => $validated['selling_price'],
             ]);
 
+            //  3. Create Stock
+            Stock::create([
+                'shop_id' => $shop->id, 
+                'batch_id' => $batch->id,  
+                'quantity_received' => $totalQuantityReceived,
+                'quantity_remaining' => $totalQuantityReceived, 
+            ]); 
+
             DB::commit();
 
-
-        } catch (Exception $e) {
+        }catch(UniqueConstraintViolationException $e){
+            DB::rollBack(); 
+            return back()->withErrors(['error' => "A batch with this batch-number: {$validated['batch_number']}  already exists. No duplicates allowed."]); 
+        }catch (Exception $e) {
             DB::rollBack();
-
-            return back()->with('error', 'Failed to create the batch record. Please try again.');
+            return back()->withErrors(['error' => 'Failed to create the batch record. Please try again. ']);
         }
     }
 

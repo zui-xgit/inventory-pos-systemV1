@@ -32,17 +32,15 @@ return new class extends Migration
                 ->constrained()
                 ->nullOnDelete();
  
-            $table->string('batch_number')->nullable(); // manufacturer batch number
+            $table->string('batch_number'); // manufacturer batch number
             
-            $table->date('expiry_date')->nullable();    // null means no expiry (e.g. equipment)
-            $table->date('manufactured_date')->nullable();
+            $table->date('expiry_date');   
+            $table->date('manufactured_date');
  
             $table->integer('units_per_package_received');
             $table->integer('packages_received'); 
 
 
-            $table->integer('quantity_received'); // original quantity received
-            $table->integer('quantity_remaining'); // original quantity received
             $table->integer('cost_price');        // buying price per unit
             $table->integer('selling_price');     // selling price per unit
  

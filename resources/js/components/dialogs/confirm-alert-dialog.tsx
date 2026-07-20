@@ -44,9 +44,9 @@ export function ConfirmAlertDialog({
 
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                    {/* <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
                         <AlertCircle />
-                    </AlertDialogMedia>
+                    </AlertDialogMedia> */}
                     <AlertDialogTitle>{title}</AlertDialogTitle>
                     <AlertDialogDescription>
                         {description}

@@ -93,54 +93,6 @@ const DUMMY_PRODUCTS: Product[] = [
             },
         ],
     },
-    {
-        id: '2',
-        name: 'Amoxicillin 250mg',
-        sku: 'AMX250',
-        form: 'Syrup',
-        unit: 'Bottle',
-        batches: [
-            {
-                id: 'b3',
-                batch_number: 'AMX-2024-001',
-                expiry_date: '2025-03-20',
-                selling_price: 8500,
-                quantity_available: 30,
-            },
-        ],
-    },
-    {
-        id: '3',
-        name: 'Ibuprofen 400mg',
-        sku: 'IBU400',
-        form: 'Tablet',
-        unit: 'Strip',
-        batches: [
-            {
-                id: 'b4',
-                batch_number: 'IBU-2024-001',
-                expiry_date: '2026-08-10',
-                selling_price: 3000,
-                quantity_available: 80,
-            },
-        ],
-    },
-    {
-        id: '4',
-        name: 'Metronidazole 200mg',
-        sku: 'MTZ200',
-        form: 'Tablet',
-        unit: 'Strip',
-        batches: [
-            {
-                id: 'b5',
-                batch_number: 'MTZ-2024-001',
-                expiry_date: '2025-11-05',
-                selling_price: 1800,
-                quantity_available: 60,
-            },
-        ],
-    },
 ];
 
 const CURRENCY_SYMBOL = 'TSh';

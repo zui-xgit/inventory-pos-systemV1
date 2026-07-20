@@ -35,16 +35,14 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
  
-            $table->foreignIdFor(Product::class)
-                ->constrained()
-                ->restrictOnDelete();
- 
             $table->foreignIdFor(Batch::class)
                 ->constrained()
                 ->restrictOnDelete();
  
             // Current available quantity of this batch in this shop
-            $table->decimal('quantity', 10, 2)->default(0);
+            
+            $table->unsignedInteger('quantity_received'); // original quantity received
+            $table->unsignedInteger('quantity_remaining'); // original quantity received
  
             $table->timestamps();
  

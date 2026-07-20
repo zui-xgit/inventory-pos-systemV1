@@ -14,14 +14,14 @@ const sidebarNavItems = (shop_uuid: string): NavItem[] => [
         icon: Package,
     },
     {
-        title: 'Batches',
-        href: catalog.batches({ shop: shop_uuid }),
-        icon: Layers,
-    },
-    {
         title: 'Dosage Forms',
         href: catalog.dosageForms({ shop: shop_uuid }),
         icon: Pill,
+    },
+    {
+        title: 'Batches',
+        href: catalog.batches({ shop: shop_uuid }),
+        icon: Layers,
     },
     // {
     //     title: 'Package Units',

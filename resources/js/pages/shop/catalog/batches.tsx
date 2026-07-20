@@ -1,6 +1,6 @@
 import Heading from '@/components/heading';
 import SearchInput from '@/components/search-input';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     Table,
     TableBody,
@@ -12,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import stock from '@/routes/stock';
 
 interface BatchItem {
     uuid: string;
@@ -38,6 +39,10 @@ interface Props {
 }
 
 const Batches = ({ batches, filters }: Props) => {
+    const { activeShop } = usePage<{
+        activeShop: { uuid: string } | undefined;
+    }>().props;
+
     return (
         <>
             <Head title="Inventory Batches" />
@@ -50,7 +55,17 @@ const Batches = ({ batches, filters }: Props) => {
                         title="Inventory Batches"
                         description="Track physical stock shipments, costs, operational pricing, and expiration risks."
                     />
-                    <Button size="sm" className="w-full sm:w-auto">
+                    <Button
+                        onClick={() => {
+                            if (activeShop) {
+                                router.get(
+                                    stock.receiveStock(activeShop.uuid).url,
+                                );
+                            }
+                        }}
+                        size="sm"
+                        className="w-full sm:w-auto"
+                    >
                         <Plus className="mr-2 h-4 w-4" /> Record New Batch
                     </Button>
                 </div>

@@ -20,6 +20,9 @@ import {
     History,
     TriangleAlert,
     AlarmClock,
+    LayoutList,
+    ArrowLeftRight,
+    ClipboardList,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -108,9 +111,27 @@ const ShopStock = (shop_uuid: string): NavItem[] => [
         icon: ShoppingCart,
     },
     {
-        title: 'Stock History',
-        href: stock.history({ shop: shop_uuid }),
-        icon: History,
+        title: 'Stock Levels',
+        href: '#',
+
+        icon: LayoutList,
+    },
+    {
+        title: 'Stock Movements',
+        href: '#',
+
+        icon: ArrowLeftRight,
+    },
+    {
+        title: 'Stock Taking',
+        href: '#',
+
+        icon: ClipboardList,
+    },
+    {
+        title: 'Expirty Tracker',
+        href: '#',
+        icon: CalendarClock,
     },
 ];
 
