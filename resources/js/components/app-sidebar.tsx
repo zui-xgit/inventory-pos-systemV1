@@ -110,29 +110,29 @@ const ShopStock = (shop_uuid: string): NavItem[] => [
         href: stock.receiveStock({ shop: shop_uuid }),
         icon: ShoppingCart,
     },
-    {
-        title: 'Stock Levels',
-        href: '#',
+    // {
+    //     title: 'Stock Levels',
+    //     href: '#',
 
-        icon: LayoutList,
-    },
-    {
-        title: 'Stock Movements',
-        href: '#',
+    //     icon: LayoutList,
+    // },
+    // {
+    //     title: 'Stock Movements',
+    //     href: '#',
 
-        icon: ArrowLeftRight,
-    },
-    {
-        title: 'Stock Taking',
-        href: '#',
+    //     icon: ArrowLeftRight,
+    // },
+    // {
+    //     title: 'Stock Taking',
+    //     href: '#',
 
-        icon: ClipboardList,
-    },
-    {
-        title: 'Expirty Tracker',
-        href: '#',
-        icon: CalendarClock,
-    },
+    //     icon: ClipboardList,
+    // },
+    // {
+    //     title: 'Expirty Tracker',
+    //     href: '#',
+    //     icon: CalendarClock,
+    // },
 ];
 
 const ShopCatalog = (shop_uuid: string): NavItem[] => [
@@ -318,16 +318,11 @@ export function AppSidebar() {
                         groupLabel={'Overview'}
                         items={ShopOverview(activeShop.uuid)}
                     />
-                    {/* SALES */}
                     <NavMain
                         groupLabel={'Sales'}
                         items={ShopSales(activeShop.uuid)}
                     />
-                    {/* PURCHASES */}
-                    <NavMain
-                        groupLabel={'Stock'}
-                        items={ShopStock(activeShop.uuid)}
-                    />
+                   
                     <NavMain
                         groupLabel={'Catalog'}
                         items={ShopCatalog(activeShop.uuid)}
@@ -354,6 +349,11 @@ export function AppSidebar() {
                             },
                         ]}
                     />
+                     <NavMain
+                        groupLabel={'Stock'}
+                        items={ShopStock(activeShop.uuid)}
+                    />
+                    
                     {/* <SidebarGroup className="py-0">
                         <SidebarGroupLabel>Catalog</SidebarGroupLabel>
                         <NavSubMain

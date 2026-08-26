@@ -2,6 +2,7 @@
 
 namespace App\Models\Catalog;
 
+use App\Models\Catalog\Product;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;

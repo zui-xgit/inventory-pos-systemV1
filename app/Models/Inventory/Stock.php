@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Guarded('id')]
 class Stock extends Model
 {
-    /** @use HasFactory<\Database\Factories\StockFactory> */
+     /** @use HasFactory<\Database\Factories\Inventory\StockFactory> */
     use HasFactory;
     use BelongsToShop; 
     use HasUuids; 
