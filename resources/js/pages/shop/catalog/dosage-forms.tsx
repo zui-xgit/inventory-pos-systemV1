@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PersonStanding, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import NewDosageFormSheet from '@/components/sheets/new-dosage-form';
 import { ConfirmAlertDialog } from '@/components/dialogs/confirm-alert-dialog';
 

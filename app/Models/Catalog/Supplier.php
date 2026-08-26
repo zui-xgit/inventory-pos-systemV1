@@ -2,7 +2,7 @@
 
 namespace App\Models\Catalog;
 
-use App\Models\Inventory\Batch;
+use App\Models\Catalog\Batch;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Guarded('id')]
 class Supplier extends Model
 {
-    /** @use HasFactory<\Database\Factories\SupplierFactory> */
+    /** @use HasFactory<\Database\Factories\Catalog\SupplierFactory> */
     use HasFactory;
     use BelongsToShop; 
     use SoftDeletes; 

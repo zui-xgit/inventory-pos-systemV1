@@ -3,6 +3,7 @@
 namespace App\Models\Inventory;
 
 use App\Models\Catalog\Product;
+use App\Models\Catalog\Batch;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

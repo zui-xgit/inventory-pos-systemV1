@@ -2,20 +2,20 @@
 
 namespace App\Models\Core;
 
+use App\Models\Catalog\Batch;
 use App\Models\Catalog\DosageForm;
 use App\Models\Catalog\PackageUnit;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\Supplier;
-use App\Models\Inventory\Batch;
 use App\Models\Inventory\Stock;
 use App\Models\Inventory\StockMovement;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(

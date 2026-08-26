@@ -2,7 +2,9 @@
 
 namespace App\Models\Catalog;
 
-use App\Models\Inventory\Batch;
+use App\Models\Catalog\Batch;
+use App\Models\Catalog\DosageForm;
+use App\Models\Catalog\PackageUnit;
 use App\Models\Inventory\Stock;
 use App\Models\Inventory\StockMovement;
 use App\Traits\BelongsToShop;
@@ -18,7 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Guarded('id')]
 class Product extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductFactory> */
+    /** @use HasFactory<\Database\Factories\Catalog\ProductFactory> */
     use HasFactory;
     use BelongsToShop; 
     use SoftDeletes; 

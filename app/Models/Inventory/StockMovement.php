@@ -3,7 +3,9 @@
 namespace App\Models\Inventory;
 
 use App\Models\Catalog\Product;
+use App\Models\Catalog\Batch;
 use App\Models\User;
+
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -15,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 #[Guarded('id')]
 class StockMovement extends Model
 {
-    /** @use HasFactory<\Database\Factories\StockMovementFactory> */
+    /** @use HasFactory<\Database\Factories\Inventory\StockMovementFactory> */
     use HasFactory;
     use BelongsToShop; 
     use HasUuids; 
