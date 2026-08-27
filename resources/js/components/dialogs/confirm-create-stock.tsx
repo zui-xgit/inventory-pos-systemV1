@@ -15,7 +15,7 @@ import { Spinner } from '../ui/spinner';
 
 // 1. Explicitly type the useForm dataset structure
 export interface StockFormData {
-    product: Product | null | Record<string, never>;
+    // product: Product | null | Record<string, never>;
     expiry_date: string;
     manufactured_date: string;
     batch_number: string;
@@ -28,6 +28,7 @@ export interface StockFormData {
 interface ProductConfirmationDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
+    product: Product | null | Record<string, never>; 
     data: StockFormData;
     onConfirm: () => void;
     processing: boolean;
@@ -36,6 +37,7 @@ interface ProductConfirmationDialogProps {
 export function StocktConfirmationDialog({
     isOpen,
     onOpenChange,
+    product, 
     data,
     onConfirm,
     processing,
@@ -75,8 +77,8 @@ export function StocktConfirmationDialog({
                                 </TableCell>
                                 <TableCell className="py-2 text-right font-semibold">
                                     {/* Optional chaining protects against empty objects */}
-                                    {data.product?.name || '-'}{' '}
-                                    {data.product?.dosage_form.name || ''}{' '}
+                                    {product?.name || '-'}{' '}
+                                    {product?.dosage_form.name || ''}{' '}
                                 </TableCell>
                             </TableRow>
                             <TableRow>

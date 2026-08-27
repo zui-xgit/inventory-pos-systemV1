@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import NewDosageFormSheet from '@/components/sheets/new-dosage-form';
 import { ConfirmAlertDialog } from '@/components/dialogs/confirm-alert-dialog';
+import { EditDeleteRowActions } from '@/components/dopdown/edit-delete-row-actions';
 
 interface DosageFormItem {
     uuid: string;
@@ -32,7 +33,8 @@ interface Props {
 }
 
 const DosageForms = ({ dosageForms, filters }: Props) => {
-    const handleConfirmDelete = () => {};
+    const handleEdit = () => {};
+    const handleDelete = () => {};
     return (
         <>
             <Head title="Dosage Forms Catalog" />
@@ -90,24 +92,10 @@ const DosageForms = ({ dosageForms, filters }: Props) => {
                                                     : 'products'}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="flex items-center justify-start gap-2">
-                                            <Badge>Edit</Badge>
-                                            <Badge variant={'destructive'}>
-                                                Delete
-                                            </Badge>
-                                            <ConfirmAlertDialog
-                                                trigger={
-                                                    <Button
-                                                        variant={'destructive'}
-                                                    >
-                                                        Delete
-                                                    </Button>
-                                                }
-                                                title="Confirm Delete"
-                                                description={
-                                                    'Are you sure you want to delete this dosage form ? '
-                                                }
-                                                onConfirm={handleConfirmDelete}
+                                        <TableCell>
+                                            <EditDeleteRowActions
+                                                onEdit={() => handleEdit()}
+                                                onDelete={() => handleDelete()}
                                             />
                                         </TableCell>
                                     </TableRow>

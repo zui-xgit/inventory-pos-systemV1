@@ -39,8 +39,6 @@ interface ReceiveStockProps {
 }
 
 type UseFormType = {
-    confirmed: boolean;
-    product: Product;
     expiry_date: string;
     manufactured_date: string;
     batch_number: string;
@@ -51,16 +49,6 @@ type UseFormType = {
 };
 
 const useFormDefaultValues: UseFormType = {
-    confirmed: false,
-    product: {
-        uuid: '',
-        name: '',
-        sku: '',
-        dosage_form: {
-            uuid: '',
-            name: '',
-        },
-    },
     expiry_date: '',
     manufactured_date: '',
     batch_number: '',
@@ -80,35 +68,27 @@ const ReceiveStock = ({
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(
         null,
     );
-    const { data, setData, processing, errors, clearErrors, reset, post } =
+    const { data, setData, processing, errors, post, transform, reset } =
         useForm<UseFormType>(useFormDefaultValues);
 
     const { activeShop } = usePage<{ activeShop: { uuid: string } }>().props;
     const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
-    const handleRecordStock = () => {
-        const updatedData = {
+    const handleRecordStock = (isConfirmed = false) => {
+        transform((data) => ({
             ...data,
             product: selectedProduct ?? undefined,
-            confirmed: false,
-        };
-        setData(updatedData);
+            confirmed: isConfirmed,
+        }));
         handleDataPostRequest();
     };
+
     const handleDataPostRequest = () => {
         post(stock.newBatch({ shop: activeShop.uuid }).url, {
             preserveState: true,
             preserveScroll: true,
             onSuccess: (page) => {
-                // reset();
-                // clearErrors();
-
                 if (page.flash.prompt_confirmation) {
-                    setData({
-                        ...data,
-                        product: selectedProduct ?? undefined,
-                        confirmed: true,
-                    });
                     setShowConfirm(true);
                 } else {
                     setShowConfirm(false);
@@ -116,6 +96,10 @@ const ReceiveStock = ({
                         position: 'top-right',
                         richColors: true,
                     });
+
+                    // reset the inputs after submission
+                    setData(useFormDefaultValues);
+                    setSelectedProduct(null);
                 }
             },
             onError: (errors) => {
@@ -128,13 +112,18 @@ const ReceiveStock = ({
             },
         });
     };
+
+    const handleConfirmSubmit = () => {
+        handleRecordStock(true);
+    };
     return (
         <DashboardInnerLayout>
             <StocktConfirmationDialog
                 isOpen={showConfirm}
                 onOpenChange={setShowConfirm}
+                product={selectedProduct}
                 data={data}
-                onConfirm={handleDataPostRequest}
+                onConfirm={handleConfirmSubmit}
                 processing={processing}
             />
             <div className="space-y-6">
@@ -169,7 +158,14 @@ const ReceiveStock = ({
                                     })}
                                     filters={filters}
                                 />
-                                <InputError message={errors.product} />
+
+                                <InputError
+                                    message={
+                                        (errors as Record<string, string>)
+                                            .product
+                                    }
+                                />
+
                                 {selectedProduct && (
                                     <div className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-muted/50 px-3 py-1 text-sm shadow-sm">
                                         <div className="flex items-center gap-2 truncate overflow-hidden">
@@ -496,7 +492,7 @@ const ReceiveStock = ({
 
                             {/* Submit */}
                             <Button
-                                onClick={handleRecordStock}
+                                onClick={() => handleRecordStock()}
                                 className="w-full cursor-pointer gap-2 rounded-xl font-semibold"
                                 disabled={processing}
                             >

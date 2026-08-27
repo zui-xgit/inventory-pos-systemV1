@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import NewProductSheet from '@/components/sheets/new-product';
 import { DosageForm } from '@/types/type';
+import { EditDeleteRowActions } from '@/components/dopdown/edit-delete-row-actions';
 
 interface ProductItem {
     uuid: string;
@@ -33,6 +34,8 @@ interface Props {
 }
 
 const Products = ({ products, filters, dosage_forms }: Props) => {
+    const handleEdit = () => {};
+    const handleDelete = () => {};
     return (
         <>
             <Head title="Products Catalog" />
@@ -91,11 +94,11 @@ const Products = ({ products, filters, dosage_forms }: Props) => {
                                             </Badge>
                                         </TableCell>
 
-                                        <TableCell className="flex items-center justify-start gap-4">
-                                            <Badge>Edit</Badge>
-                                            <Badge variant={'destructive'}>
-                                                Delete
-                                            </Badge>
+                                        <TableCell>
+                                            <EditDeleteRowActions
+                                                onEdit={() => handleEdit()}
+                                                onDelete={() => handleDelete()}
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 ))

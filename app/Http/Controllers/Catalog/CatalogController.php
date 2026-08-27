@@ -63,6 +63,9 @@ class CatalogController extends Controller
         
     }
 
+    
+
+
     public function batchesCatalog(Request $request, Shop $shop)
     {   
         $search_input = $request->input('search'); 
@@ -77,25 +80,43 @@ class CatalogController extends Controller
                     });
                 });
             })
-            ->with(['product:id,uuid,name']) // Eager-load parent product details securely
+            ->with([
+                'product:id,uuid,name',
+                'supplier:id,name'
+            ])
             ->latest()
             ->paginate(10)
             ->withQueryString()
             ->through(function ($batch) {
+                $totalUnitsReceived = $batch->packages_received * $batch->units_per_package_received;
+
                 return [
-                    'uuid'                        => $batch->uuid,
-                    'batch_number'                => $batch->batch_number,
-                    'product_name'                => $batch->product?->name ?? 'Unknown Product',
-                    'units_per_package_received'  => $batch->units_per_package_received,
-                    'packages_received'           => $batch->packages_received,
-                    'quantity_received'           => $batch->quantity_received,
-                    'current_quantity'            => $batch->current_quantity ?? $batch->quantity_received,
-                    'cost_price'                  => $batch->cost_price,
-                    'selling_price'               => $batch->selling_price,
-                    'expiry_date'                 => $batch->expiry_date ? $batch->expiry_date->format('Y-m-d') : 'N/A',
-                    'is_expired'                  => $batch->expiry_date ? $batch->expiry_date->isPast() : false,
+                    'uuid'                       => $batch->uuid,
+                    'batch_number'               => $batch->batch_number,
+                    'product_name'               => $batch->product?->name ?? 'Unknown Product',
+                    'product_uuid'               => $batch->product?->uuid,
+                    'supplier_name'              => $batch->supplier?->name ?? 'N/A',
+                    
+                    // Receiving Quantities
+                    'packages_received'          => $batch->packages_received,
+                    'units_per_package_received' => $batch->units_per_package_received,
+                    'total_units_received'       => $totalUnitsReceived,
+                    
+                    // Current Stock Quantities
+                    'packages_remaining'         => $batch->packages_remaining,
+                    'units_remaining'            => $batch->units_remaining,
+                    'is_out_of_stock'            => $batch->units_remaining <= 0,
+                    
+                    // Pricing
+                    'cost_price'                 => $batch->cost_price,
+                    'selling_price'              => $batch->selling_price,
+                    
+                    // Dates
+                    'manufactured_date'          => $batch->manufactured_date ? $batch->manufactured_date->format('Y-m-d') : null,
+                    'expiry_date'                => $batch->expiry_date ? $batch->expiry_date->format('Y-m-d') : 'N/A',
+                    'is_expired'                 => $batch->expiry_date ? $batch->expiry_date->isPast() : false,
                 ];
-        });
+            });
         
         return Inertia::render('shop/catalog/batches', [
             'batches' => $batches,
@@ -263,7 +284,7 @@ class CatalogController extends Controller
             
 
             // 2. Create batch
-            $batch = Batch::create([
+            Batch::create([
                 'shop_id'                    => $shop->id,
                 'product_id'                 => $product->id,
                 'batch_number'               => $validated['batch_number'],
@@ -273,15 +294,11 @@ class CatalogController extends Controller
                 'packages_received'          => $validated['packages_received'],
                 'cost_price'                 => $validated['cost_price'],
                 'selling_price'              => $validated['selling_price'],
+
+                'packages_remaining'         => $validated['packages_received'],
+                'units_remaining'            => $totalQuantityReceived,
             ]);
 
-            //  3. Create Stock
-            Stock::create([
-                'shop_id' => $shop->id, 
-                'batch_id' => $batch->id,  
-                'quantity_received' => $totalQuantityReceived,
-                'quantity_remaining' => $totalQuantityReceived, 
-            ]); 
 
             DB::commit();
 

@@ -27,13 +27,14 @@ import {
     ShoppingCart,
     Receipt,
     X,
+    AlertCircle,
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface Batch {
+export interface Batch {
     id: string;
     batch_number: string;
     expiry_date: string;
@@ -41,7 +42,7 @@ interface Batch {
     quantity_available: number;
 }
 
-interface Product {
+export interface Product {
     id: string;
     name: string;
     sku: string;
@@ -50,7 +51,7 @@ interface Product {
     batches: Batch[];
 }
 
-interface CartItem {
+export interface CartItem {
     product_id: string;
     batch_id: string;
     name: string;
@@ -61,52 +62,41 @@ interface CartItem {
     quantity: number;
     unit_price: number;
     subtotal: number;
+    max_quantity: number;
+    available_batches: Batch[];
 }
 
-type PaymentMethod = 'cash' | 'card' | 'mobile';
+export type PaymentMethod = 'cash' | 'card' | 'mobile';
+
+interface NewSalePOSProps {
+    products?: Product[];
+    currencySymbol?: string;
+    onCheckout?: (saleData: {
+        cart: CartItem[];
+        subtotal: number;
+        discount: number;
+        total: number;
+        amountPaid: number;
+        change: number;
+        paymentMethod: PaymentMethod;
+    }) => void;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Dummy data
+// FEFO Helper Engine
+// Sorts available batches by expiry date (earliest first), ignoring depleted stock
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DUMMY_PRODUCTS: Product[] = [
-    {
-        id: '1',
-        name: 'Paracetamol 500mg',
-        sku: 'PCM500',
-        form: 'Tablet',
-        unit: 'Strip',
-        batches: [
-            {
-                id: 'b1',
-                batch_number: 'PCM-2024-001',
-                expiry_date: '2025-06-30',
-                selling_price: 2500,
-                quantity_available: 45,
-            },
-            {
-                id: 'b2',
-                batch_number: 'PCM-2024-002',
-                expiry_date: '2026-01-15',
-                selling_price: 2700,
-                quantity_available: 100,
-            },
-        ],
-    },
-];
+const getFEFOBatch = (batches: Batch[]): Batch | null => {
+    const validBatches = batches
+        .filter((b) => b.quantity_available > 0)
+        .sort(
+            (a, b) =>
+                new Date(a.expiry_date).getTime() -
+                new Date(b.expiry_date).getTime(),
+        );
 
-const CURRENCY_SYMBOL = 'TSh';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helper — pick earliest expiry batch (FEFO)
-// ─────────────────────────────────────────────────────────────────────────────
-
-const getEarliestBatch = (batches: Batch[]): Batch => {
-    return [...batches].sort(
-        (a, b) =>
-            new Date(a.expiry_date).getTime() -
-            new Date(b.expiry_date).getTime(),
-    )[0];
+    return validBatches.length > 0 ? validBatches[0] : null;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -115,12 +105,18 @@ const getEarliestBatch = (batches: Batch[]): Batch => {
 
 const ProductRow = ({
     product,
+    currencySymbol,
     onAdd,
 }: {
     product: Product;
-    onAdd: (product: Product) => void;
+    currencySymbol: string;
+    onAdd: (product: Product, batch: Batch) => void;
 }) => {
-    const batch = getEarliestBatch(product.batches);
+    const fefoBatch = getFEFOBatch(product.batches);
+    const totalStock = product.batches.reduce(
+        (sum, b) => sum + b.quantity_available,
+        0,
+    );
 
     return (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-muted/30 p-3 transition-colors hover:bg-muted/60">
@@ -133,23 +129,36 @@ const ProductRow = ({
                         {product.form}
                     </Badge>
                 </div>
-                <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                     <span>SKU: {product.sku}</span>
-                    <span>Exp: {batch.expiry_date}</span>
-                    <span>
-                        Stock: {batch.quantity_available} {product.unit}s
-                    </span>
+                    {fefoBatch ? (
+                        <>
+                            <span className="font-medium text-amber-600 dark:text-amber-400">
+                                FEFO Exp: {fefoBatch.expiry_date}
+                            </span>
+                            <span>
+                                Total Stock: {totalStock} {product.unit}s
+                            </span>
+                        </>
+                    ) : (
+                        <span className="font-medium text-destructive">
+                            Out of Stock
+                        </span>
+                    )}
                 </div>
             </div>
             <div className="flex shrink-0 items-center gap-3">
-                <p className="text-sm font-bold text-foreground">
-                    {CURRENCY_SYMBOL} {batch.selling_price.toLocaleString()}
-                </p>
+                {fefoBatch && (
+                    <p className="text-sm font-bold text-foreground">
+                        {currencySymbol}{' '}
+                        {fefoBatch.selling_price.toLocaleString()}
+                    </p>
+                )}
                 <Button
                     size="sm"
-                    onClick={() => onAdd(product)}
+                    onClick={() => fefoBatch && onAdd(product, fefoBatch)}
                     className="h-8 w-8 rounded-lg p-0"
-                    disabled={batch.quantity_available === 0}
+                    disabled={!fefoBatch}
                 >
                     <Plus className="h-4 w-4" />
                 </Button>
@@ -160,34 +169,75 @@ const ProductRow = ({
 
 const CartRow = ({
     item,
+    currencySymbol,
     onIncrease,
     onDecrease,
     onRemove,
+    onBatchChange,
 }: {
     item: CartItem;
-    onIncrease: (id: string) => void;
-    onDecrease: (id: string) => void;
-    onRemove: (id: string) => void;
+    currencySymbol: string;
+    onIncrease: (batchId: string) => void;
+    onDecrease: (batchId: string) => void;
+    onRemove: (batchId: string) => void;
+    onBatchChange: (currentBatchId: string, newBatchId: string) => void;
 }) => (
-    <div className="flex items-start justify-between gap-3 rounded-lg border border-border/50 bg-muted/20 p-3">
-        <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-foreground">
-                {item.name}
-            </p>
-            <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <Badge variant="outline" className="text-[10px]">
-                    {item.form}
-                </Badge>
-                <span className="truncate">Batch: {item.batch_number}</span>
+    <div className="flex flex-col gap-2 rounded-lg border border-border/50 bg-muted/20 p-3">
+        <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-foreground">
+                    {item.name}
+                </p>
+                <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant="outline" className="text-[10px]">
+                        {item.form}
+                    </Badge>
+                    <span>
+                        {currencySymbol} {item.unit_price.toLocaleString()} /{' '}
+                        {item.unit}
+                    </span>
+                </div>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-                {CURRENCY_SYMBOL} {item.unit_price.toLocaleString()} /{' '}
-                {item.unit}
-            </p>
+            <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onRemove(item.batch_id)}
+                className="h-7 w-7 shrink-0 rounded-lg p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+                <Trash2 className="h-3.5 w-3.5" />
+            </Button>
         </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-2">
-            <div className="flex items-center gap-1">
+        {/* Dynamic FEFO / Batch Switcher */}
+        <div className="flex items-center justify-between gap-2 border-t border-border/40 pt-2">
+            <div className="flex-1">
+                <Select
+                    value={item.batch_id}
+                    onValueChange={(newBatchId) =>
+                        onBatchChange(item.batch_id, newBatchId)
+                    }
+                >
+                    <SelectTrigger className="h-7 rounded-md bg-background text-[11px]">
+                        <SelectValue placeholder="Select Batch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {item.available_batches.map((b) => (
+                            <SelectItem
+                                key={b.id}
+                                value={b.id}
+                                disabled={b.quantity_available === 0}
+                                className="text-xs"
+                            >
+                                {b.batch_number} (Exp: {b.expiry_date} | Avail:{' '}
+                                {b.quantity_available})
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {/* Quantity adjustment */}
+            <div className="flex shrink-0 items-center gap-1">
                 <Button
                     size="sm"
                     variant="outline"
@@ -196,38 +246,36 @@ const CartRow = ({
                 >
                     <Minus className="h-3 w-3" />
                 </Button>
-                <span className="w-6 text-center text-sm font-bold">
+                <span className="w-6 text-center text-xs font-bold">
                     {item.quantity}
                 </span>
                 <Button
                     size="sm"
                     variant="outline"
                     onClick={() => onIncrease(item.batch_id)}
+                    disabled={item.quantity >= item.max_quantity}
                     className="h-7 w-7 rounded-lg p-0"
                 >
                     <Plus className="h-3 w-3" />
                 </Button>
-                <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onRemove(item.batch_id)}
-                    className="h-7 w-7 rounded-lg p-0 text-destructive hover:text-destructive"
-                >
-                    <Trash2 className="h-3 w-3" />
-                </Button>
             </div>
-            <p className="text-xs font-bold text-foreground">
-                {CURRENCY_SYMBOL} {item.subtotal.toLocaleString()}
-            </p>
+        </div>
+
+        <div className="flex justify-end pt-1 text-xs font-bold text-foreground">
+            Subtotal: {currencySymbol} {item.subtotal.toLocaleString()}
         </div>
     </div>
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Main POS Page
+// Dynamic POS Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-const NewSalePOS = () => {
+export default function NewSalePOS({
+    products = [],
+    currencySymbol = 'TSh',
+    onCheckout,
+}: NewSalePOSProps) {
     const [search, setSearch] = useState('');
     const [cart, setCart] = useState<CartItem[]>([]);
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
@@ -235,28 +283,31 @@ const NewSalePOS = () => {
     const [amountPaid, setAmountPaid] = useState<number>(0);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-    // ── Search filter ─────────────────────────────────────────────────────────
+    // ── Realtime Dynamic Filtering ───────────────────────────────────────────
 
     const filteredProducts = useMemo(() => {
-        if (!search.trim()) return DUMMY_PRODUCTS;
+        if (!search.trim()) return products;
         const q = search.toLowerCase();
-        return DUMMY_PRODUCTS.filter(
+        return products.filter(
             (p) =>
                 p.name.toLowerCase().includes(q) ||
-                p.sku.toLowerCase().includes(q),
+                p.sku.toLowerCase().includes(q) ||
+                p.batches.some((b) => b.batch_number.toLowerCase().includes(q)),
         );
-    }, [search]);
+    }, [products, search]);
 
-    // ── Cart actions ──────────────────────────────────────────────────────────
+    // ── Cart State Mutators ──────────────────────────────────────────────────
 
-    const addToCart = (product: Product) => {
-        const batch = getEarliestBatch(product.batches);
-        const existing = cart.find((item) => item.batch_id === batch.id);
+    const addToCart = (product: Product, selectedBatch: Batch) => {
+        const existing = cart.find(
+            (item) => item.batch_id === selectedBatch.id,
+        );
 
         if (existing) {
+            if (existing.quantity >= selectedBatch.quantity_available) return;
             setCart((prev) =>
                 prev.map((item) =>
-                    item.batch_id === batch.id
+                    item.batch_id === selectedBatch.id
                         ? {
                               ...item,
                               quantity: item.quantity + 1,
@@ -270,31 +321,65 @@ const NewSalePOS = () => {
                 ...prev,
                 {
                     product_id: product.id,
-                    batch_id: batch.id,
+                    batch_id: selectedBatch.id,
                     name: product.name,
                     form: product.form,
                     unit: product.unit,
-                    batch_number: batch.batch_number,
-                    expiry_date: batch.expiry_date,
+                    batch_number: selectedBatch.batch_number,
+                    expiry_date: selectedBatch.expiry_date,
                     quantity: 1,
-                    unit_price: batch.selling_price,
-                    subtotal: batch.selling_price,
+                    unit_price: selectedBatch.selling_price,
+                    subtotal: selectedBatch.selling_price,
+                    max_quantity: selectedBatch.quantity_available,
+                    available_batches: product.batches,
                 },
             ]);
         }
     };
 
+    const handleBatchChange = (currentBatchId: string, newBatchId: string) => {
+        setCart((prev) =>
+            prev.map((item) => {
+                if (item.batch_id === currentBatchId) {
+                    const newBatch = item.available_batches.find(
+                        (b) => b.id === newBatchId,
+                    );
+                    if (!newBatch) return item;
+
+                    const validQty = Math.min(
+                        item.quantity,
+                        newBatch.quantity_available,
+                    );
+                    return {
+                        ...item,
+                        batch_id: newBatch.id,
+                        batch_number: newBatch.batch_number,
+                        expiry_date: newBatch.expiry_date,
+                        unit_price: newBatch.selling_price,
+                        max_quantity: newBatch.quantity_available,
+                        quantity: validQty,
+                        subtotal: validQty * newBatch.selling_price,
+                    };
+                }
+                return item;
+            }),
+        );
+    };
+
     const increaseQty = (batchId: string) => {
         setCart((prev) =>
-            prev.map((item) =>
-                item.batch_id === batchId
-                    ? {
-                          ...item,
-                          quantity: item.quantity + 1,
-                          subtotal: (item.quantity + 1) * item.unit_price,
-                      }
-                    : item,
-            ),
+            prev.map((item) => {
+                if (item.batch_id === batchId) {
+                    if (item.quantity >= item.max_quantity) return item;
+                    const newQty = item.quantity + 1;
+                    return {
+                        ...item,
+                        quantity: newQty,
+                        subtotal: newQty * item.unit_price,
+                    };
+                }
+                return item;
+            }),
         );
     };
 
@@ -325,25 +410,38 @@ const NewSalePOS = () => {
         setPaymentMethod('cash');
     };
 
-    // ── Totals ────────────────────────────────────────────────────────────────
+    // ── Summary Calculations ─────────────────────────────────────────────────
 
     const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
     const total = Math.max(subtotal - discount, 0);
     const change = Math.max(amountPaid - total, 0);
-
     const totalItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+    const handleCheckout = () => {
+        if (onCheckout) {
+            onCheckout({
+                cart,
+                subtotal,
+                discount,
+                total,
+                amountPaid,
+                change,
+                paymentMethod,
+            });
+        }
+        clearCart();
+        setIsSheetOpen(false);
+    };
 
     return (
         <DashboardInnerLayout>
-            {/* relative container gives us local context for positioning our fixed/absolute elements */}
             <div className="relative flex h-full flex-col gap-4">
-                {/* ── 100% WIDTH SEARCH & PRODUCTS CARD ───────────────────── */}
                 <Card className="flex flex-1 flex-col shadow-none">
                     <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-3">
                         <div className="relative max-w-md flex-1">
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
-                                placeholder="Search products by name or SKU..."
+                                placeholder="Search live products, SKU, or batch..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="rounded-xl pl-9"
@@ -363,9 +461,11 @@ const NewSalePOS = () => {
                     <CardContent className="flex-1 space-y-2 overflow-y-auto">
                         {filteredProducts.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 text-center">
-                                <Search className="mb-2 h-8 w-8 text-muted-foreground/40" />
+                                <AlertCircle className="mb-2 h-8 w-8 text-muted-foreground/40" />
                                 <p className="text-sm text-muted-foreground">
-                                    No products found for "{search}"
+                                    {products.length === 0
+                                        ? 'No products available in inventory.'
+                                        : `No products found matching "${search}"`}
                                 </p>
                             </div>
                         ) : (
@@ -373,6 +473,7 @@ const NewSalePOS = () => {
                                 <ProductRow
                                     key={product.id}
                                     product={product}
+                                    currencySymbol={currencySymbol}
                                     onAdd={addToCart}
                                 />
                             ))
@@ -380,7 +481,7 @@ const NewSalePOS = () => {
                     </CardContent>
                 </Card>
 
-                {/* ── FLOATING ACTION CART TRIGGER & SHEET OVERLAY ─────────── */}
+                {/* Floating Drawer Trigger */}
                 <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                     <SheetTrigger asChild>
                         <Button
@@ -402,11 +503,10 @@ const NewSalePOS = () => {
                     </SheetTrigger>
 
                     <SheetContent className="flex w-full flex-col border-l border-border p-0 sm:max-w-md">
-                        {/* Header padded to the right via pr-12 to safeguard the default X icon */}
                         <SheetHeader className="flex shrink-0 flex-row items-center justify-between space-y-0 border-b border-border p-4 pr-12">
                             <SheetTitle className="flex items-center gap-2 text-base font-semibold">
                                 <ShoppingCart className="h-4 w-4" />
-                                Cart Items
+                                Current Sale ({totalItemsCount})
                             </SheetTitle>
                             {cart.length > 0 && (
                                 <Button
@@ -420,7 +520,6 @@ const NewSalePOS = () => {
                             )}
                         </SheetHeader>
 
-                        {/* Unified layout view - entirely scrollable context */}
                         <div className="flex-1 space-y-6 overflow-y-auto p-4">
                             {cart.length === 0 ? (
                                 <div className="flex h-64 flex-col items-center justify-center text-center">
@@ -434,27 +533,29 @@ const NewSalePOS = () => {
                                 </div>
                             ) : (
                                 <>
-                                    {/* Cart Rows Container */}
-                                    <div className="space-y-2">
+                                    <div className="space-y-3">
                                         {cart.map((item) => (
                                             <CartRow
                                                 key={item.batch_id}
                                                 item={item}
+                                                currencySymbol={currencySymbol}
                                                 onIncrease={increaseQty}
                                                 onDecrease={decreaseQty}
                                                 onRemove={removeItem}
+                                                onBatchChange={
+                                                    handleBatchChange
+                                                }
                                             />
                                         ))}
                                     </div>
 
                                     <Separator />
 
-                                    {/* Invoice Totals Calculation */}
                                     <div className="space-y-3 text-sm">
                                         <div className="flex justify-between text-muted-foreground">
                                             <span>Subtotal</span>
                                             <span className="font-medium text-foreground">
-                                                {CURRENCY_SYMBOL}{' '}
+                                                {currencySymbol}{' '}
                                                 {subtotal.toLocaleString()}
                                             </span>
                                         </div>
@@ -488,7 +589,7 @@ const NewSalePOS = () => {
                                         <div className="flex justify-between text-base font-bold text-foreground">
                                             <span>Total</span>
                                             <span>
-                                                {CURRENCY_SYMBOL}{' '}
+                                                {currencySymbol}{' '}
                                                 {total.toLocaleString()}
                                             </span>
                                         </div>
@@ -496,7 +597,6 @@ const NewSalePOS = () => {
 
                                     <Separator />
 
-                                    {/* Payment Tendering System Fields */}
                                     <div className="space-y-4">
                                         <div className="space-y-1.5">
                                             <label className="text-xs font-semibold text-muted-foreground">
@@ -545,51 +645,36 @@ const NewSalePOS = () => {
                                                                 ),
                                                             )
                                                         }
-                                                        placeholder={`Min ${CURRENCY_SYMBOL} ${total.toLocaleString()}`}
+                                                        placeholder={`Min ${currencySymbol} ${total.toLocaleString()}`}
                                                         className="rounded-xl text-xs"
                                                     />
                                                 </div>
                                                 {amountPaid >= total &&
                                                     amountPaid > 0 && (
-                                                        <div className="flex justify-between rounded-xl bg-primary/10 px-3 py-2 text-xs font-bold text-primary">
+                                                        <div className="flex justify-between text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                                            <span>Change</span>
                                                             <span>
-                                                                Change Due
-                                                            </span>
-                                                            <span>
-                                                                {
-                                                                    CURRENCY_SYMBOL
-                                                                }{' '}
+                                                                {currencySymbol}{' '}
                                                                 {change.toLocaleString()}
                                                             </span>
                                                         </div>
                                                     )}
                                             </div>
                                         )}
-                                    </div>
 
-                                    {/* Transaction Finalization Action Button */}
-                                    <Button
-                                        className="h-11 w-full gap-2 rounded-xl pt-1 font-semibold"
-                                        disabled={
-                                            cart.length === 0 ||
-                                            (paymentMethod === 'cash' &&
-                                                amountPaid < total)
-                                        }
-                                        onClick={() => {
-                                            console.log({
-                                                cart,
-                                                total,
-                                                discount,
-                                                amount_paid: amountPaid,
-                                                change,
-                                                payment_method: paymentMethod,
-                                            });
-                                            setIsSheetOpen(false);
-                                        }}
-                                    >
-                                        <Receipt className="h-4 w-4" />
-                                        Complete Sale
-                                    </Button>
+                                        <Button
+                                            className="w-full rounded-xl"
+                                            size="lg"
+                                            onClick={handleCheckout}
+                                            disabled={
+                                                paymentMethod === 'cash' &&
+                                                amountPaid < total
+                                            }
+                                        >
+                                            <Receipt className="mr-2 h-4 w-4" />
+                                            Complete Sale
+                                        </Button>
+                                    </div>
                                 </>
                             )}
                         </div>
@@ -598,13 +683,4 @@ const NewSalePOS = () => {
             </div>
         </DashboardInnerLayout>
     );
-};
-
-export default NewSalePOS;
-
-NewSalePOS.layout = {
-    breadcrumbs: [
-        { title: 'Dashboard', href: '#' },
-        { title: 'New Sale', href: '#' },
-    ],
-};
+}
