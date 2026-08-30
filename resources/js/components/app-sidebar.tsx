@@ -85,185 +85,67 @@ const Account: NavItem[] = [
 // SHOP NAVITEMS
 const ShopOverview = (shop_uuid: string): NavItem[] => [
     {
-        title: 'Dashboard',
+        title: 'Overview ',
         href: shopOverview({ shop: shop_uuid }),
         icon: LayoutDashboard,
     },
-];
-
-const ShopSales = (shop_uuid: string): NavItem[] => [
     {
-        title: 'Sale / POS',
+        title: 'Sales / POS',
         href: sales.newSalePos({ shop: shop_uuid }),
         icon: ShoppingCart,
     },
-    {
-        title: 'Sales History',
-        href: sales.history({ shop: shop_uuid }),
-        icon: History,
-    },
 ];
 
-const ShopStock = (shop_uuid: string): NavItem[] => [
+const ShopInventoryAndStock = (shop_uuid: string): NavItem[] => [
+    {
+        title: 'Catalog',
+        href: catalog.products({ shop: shop_uuid }),
+        icon: Package,
+    },
     {
         title: 'Receive Stock',
         href: stock.receiveStock({ shop: shop_uuid }),
         icon: ShoppingCart,
     },
-    // {
-    //     title: 'Stock Levels',
-    //     href: '#',
-
-    //     icon: LayoutList,
-    // },
-    // {
-    //     title: 'Stock Movements',
-    //     href: '#',
-
-    //     icon: ArrowLeftRight,
-    // },
-    // {
-    //     title: 'Stock Taking',
-    //     href: '#',
-
-    //     icon: ClipboardList,
-    // },
-    // {
-    //     title: 'Expirty Tracker',
-    //     href: '#',
-    //     icon: CalendarClock,
-    // },
+    {
+        title: 'Stock Adjustments',
+        href: sales.history({ shop: shop_uuid }),
+        icon: History,
+    },
 ];
 
-const ShopCatalog = (shop_uuid: string): NavItem[] => [
+const ShopReportAndInsights = (shop_uuid: string): NavItem[] => [
     {
-        title: 'Shop Catalog',
-        href: catalog.products({ shop: shop_uuid }),
+        title: 'Sales Reports',
+        href: '#',
+        icon: Package,
+    },
+    {
+        title: 'Inventory Reports',
+        href: '#',
+        icon: ShoppingCart,
+    },
+];
+
+const ShopEntities = (shop_uuid: string): NavItem[] => [
+    {
+        title: 'Suppliers / Vendors',
+        href: '#',
+        icon: Package,
+    },
+    {
+        title: 'Customers',
+        href: '#',
+        icon: ShoppingCart,
+    },
+];
+const ShopSystem = (shop_uuid: string): NavItem[] => [
+    {
+        title: 'Settings',
+        href: '#',
         icon: Package,
     },
 ];
-
-// const ShopStock: NavItem[] = [
-//     {
-//         title: 'Stock Levels',
-//         href: '#',
-//         icon: PackageCheck,
-//     },
-//     {
-//         title: 'Stock Taking',
-//         href: '#',
-//         icon: ClipboardCheck,
-//     },
-//     {
-//         title: 'Stock Movements',
-//         href: '#',
-//         icon: ArrowLeftRight,
-//     },
-// ];
-
-// const ShopReports: NavItem[] = [
-//     {
-//         title: 'Sales Report',
-//         href: '#',
-//         icon: BarChart3,
-//     },
-//     {
-//         title: 'Profit & Loss',
-//         href: '#',
-//         icon: TrendingUp,
-//     },
-//     {
-//         title: 'Stock Valuation',
-//         href: '#',
-//         icon: Wallet,
-//     },
-//     {
-//         title: 'Expiry Report',
-//         href: '#',
-//         icon: CalendarClock,
-//     },
-//     {
-//         title: 'Purchase History',
-//         href: '#',
-//         icon: Receipt,
-//     },
-//     {
-//         title: 'Fast/Slow Movers',
-//         href: '#',
-//         icon: BarChart4,
-//     },
-// ];
-
-const ShopSalesReports: NavItem[] = [
-    {
-        title: 'Sales Report',
-        href: '#',
-        icon: BarChart3,
-    },
-    {
-        title: 'Profit & Loss',
-        href: '#',
-        icon: TrendingUp,
-    },
-    {
-        title: 'Purchase History',
-        href: '#',
-        icon: Receipt,
-    },
-];
-
-const ShopInventoryReports: NavItem[] = [
-    {
-        title: 'Stock Valuation',
-        href: '#',
-        icon: Wallet,
-    },
-    {
-        title: 'Expiry Report',
-        href: '#',
-        icon: CalendarClock,
-    },
-    {
-        title: 'Fast/Slow Movers',
-        href: '#',
-        icon: BarChart4,
-    },
-];
-
-const ShopAlerts: NavItem[] = [
-    {
-        title: 'Low Stock',
-        href: '#',
-        icon: TriangleAlert,
-    },
-    {
-        title: 'Expiring Soon',
-        href: '#',
-        icon: AlarmClock,
-    },
-];
-
-const ShopManagement: NavItem[] = [
-    {
-        title: 'Staff',
-        href: owner.staff(),
-        icon: UsersRound,
-    },
-    {
-        title: 'Shop Settings',
-        href: '#',
-        icon: Store,
-    },
-];
-
-const ShopAccount: NavItem[] = [
-    {
-        title: 'Profile',
-        href: '#',
-        icon: User,
-    },
-];
-
 const footerNavItems: NavItem[] = [
     {
         title: 'Repository',
@@ -303,106 +185,31 @@ export function AppSidebar() {
                     <NavMain groupLabel={'Overview'} items={Overview} />
                     <NavMain groupLabel={'Management'} items={Management} />
                     <NavMain groupLabel={'Account'} items={Account} />
-
-                    {/* collapsible navs */}
-                    {/* <SidebarGroup>
-                    <SidebarGroupLabel>Account</SidebarGroupLabel>
-                    <NavSubMain title="Parent" Icon={LogOut} items={Overview} />
-                </SidebarGroup> */}
                 </SidebarContent>
             )}
 
             {activeShop !== undefined && (
                 <SidebarContent>
                     <NavMain
-                        groupLabel={'Overview'}
+                        groupLabel={'Main'}
                         items={ShopOverview(activeShop.uuid)}
                     />
                     <NavMain
-                        groupLabel={'Sales'}
-                        items={ShopSales(activeShop.uuid)}
+                        groupLabel={'Inventory & Stock'}
+                        items={ShopInventoryAndStock(activeShop.uuid)}
                     />
-                   
                     <NavMain
-                        groupLabel={'Catalog'}
-                        items={ShopCatalog(activeShop.uuid)}
-                        childrenLinks={[
-                            {
-                                href: catalog.products({
-                                    shop: activeShop.uuid,
-                                }),
-                            },
-                            {
-                                href: catalog.batches({
-                                    shop: activeShop.uuid,
-                                }),
-                            },
-                            {
-                                href: catalog.dosageForms({
-                                    shop: activeShop.uuid,
-                                }),
-                            },
-                            {
-                                href: catalog.packageUnits({
-                                    shop: activeShop.uuid,
-                                }),
-                            },
-                        ]}
+                        groupLabel={'Reports & Insights'}
+                        items={ShopReportAndInsights(activeShop.uuid)}
                     />
-                     <NavMain
-                        groupLabel={'Stock'}
-                        items={ShopStock(activeShop.uuid)}
+                    <NavMain
+                        groupLabel={'Entities'}
+                        items={ShopEntities(activeShop.uuid)}
                     />
-                    
-                    {/* <SidebarGroup className="py-0">
-                        <SidebarGroupLabel>Catalog</SidebarGroupLabel>
-                        <NavSubMain
-                            title="Shop Catalog"
-                            Icon={Package}
-                            items={ShopInventory(activeShop.uuid)}
-                        />
-                    </SidebarGroup> */}
-                    {/* <SidebarGroup className="py-0">
-                        <SidebarGroupLabel>Stock</SidebarGroupLabel>
-                        <NavSubMain
-                            title="Shop Stock"
-                            Icon={Package}
-                            items={ShopStock}
-                        />
-                    </SidebarGroup> */}
-
-                    {/* <SidebarGroup className="py-0">
-                        <SidebarGroupLabel>Reports</SidebarGroupLabel>
-                        <NavSubMain
-                            title="Sales Report"
-                            Icon={BarChart3}
-                            items={ShopSalesReports}
-                        />
-                        <NavSubMain
-                            title="Inventory Report"
-                            Icon={Package}
-                            items={ShopInventoryReports}
-                        />
-                    </SidebarGroup> */}
-                    {/* <SidebarGroup className="py-0">
-                        <SidebarGroupLabel>Alerts</SidebarGroupLabel>
-                        <NavSubMain
-                            title="Shop Alerts"
-                            Icon={AlertTriangle}
-                            items={ShopAlerts}
-                        />
-                    </SidebarGroup> */}
-
-                    {/* <SidebarGroup className="py-0">
-                        <SidebarGroupLabel>Management</SidebarGroupLabel>
-                        <NavSubMain
-                            title="Shop Management"
-                            Icon={Settings}
-                            items={ShopManagement}
-                        />
-                    </SidebarGroup> */}
-
-                    {/* <NavMain groupLabel={'Account'} items={ShopAccount} /> */}
+                    <NavMain
+                        groupLabel={'System'}
+                        items={ShopSystem(activeShop.uuid)}
+                    />
                 </SidebarContent>
             )}
 
